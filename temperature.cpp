@@ -140,6 +140,8 @@ volatile bool Temperature::temp_meas_ready = false;
   bool Temperature::pid_reset[HOTENDS];
 #endif
 
+
+
 #if ENABLED(PIDTEMPBED)
   float Temperature::temp_iState_bed = { 0 },
         Temperature::temp_dState_bed = { 0 },
@@ -426,7 +428,7 @@ uint8_t Temperature::soft_pwm[HOTENDS];
         }
         return;
       }
-      lcd_update();
+    //  lcd_update();
     }
     if (!wait_for_heatup) disable_all_heaters();
   }
@@ -526,6 +528,107 @@ void Temperature::min_temp_error(int8_t e) {
   #endif
 }
 
+
+float Temperature::get_pid_output(int e) {
+  #if HOTENDS == 1
+    UNUSED(e);
+    #define _HOTEND_TEST     true
+  #else
+    #define _HOTEND_TEST     e == active_extruder
+  #endif
+  float pid_output;
+  #if ENABLED(PIDTEMP)
+    #if DISABLED(PID_OPENLOOP)
+      pid_error[HOTEND_INDEX] = target_temperature[HOTEND_INDEX] - current_temperature[HOTEND_INDEX];
+      dTerm[HOTEND_INDEX] = K2 * PID_PARAM(Kd, HOTEND_INDEX) * (current_temperature[HOTEND_INDEX] - temp_dState[HOTEND_INDEX]) + K1 * dTerm[HOTEND_INDEX];
+      temp_dState[HOTEND_INDEX] = current_temperature[HOTEND_INDEX];
+      #if HEATER_IDLE_HANDLER
+        if (heater_idle_timeout_exceeded[HOTEND_INDEX]) {
+          pid_output = 0;
+          pid_reset[HOTEND_INDEX] = true;
+        }
+        else
+      #endif
+      if (pid_error[HOTEND_INDEX] > PID_FUNCTIONAL_RANGE) {
+        pid_output = BANG_MAX;
+        pid_reset[HOTEND_INDEX] = true;
+      }
+      else if (pid_error[HOTEND_INDEX] < -(PID_FUNCTIONAL_RANGE) || target_temperature[HOTEND_INDEX] == 0
+        #if HEATER_IDLE_HANDLER
+          || heater_idle_timeout_exceeded[HOTEND_INDEX]
+        #endif
+        ) {
+        pid_output = 0;
+        pid_reset[HOTEND_INDEX] = true;
+      }
+      else {
+        if (pid_reset[HOTEND_INDEX]) {
+          temp_iState[HOTEND_INDEX] = 0.0;
+          pid_reset[HOTEND_INDEX] = false;
+        }
+        pTerm[HOTEND_INDEX] = PID_PARAM(Kp, HOTEND_INDEX) * pid_error[HOTEND_INDEX];
+        temp_iState[HOTEND_INDEX] += pid_error[HOTEND_INDEX];
+        iTerm[HOTEND_INDEX] = PID_PARAM(Ki, HOTEND_INDEX) * temp_iState[HOTEND_INDEX];
+
+        pid_output = pTerm[HOTEND_INDEX] + iTerm[HOTEND_INDEX] - dTerm[HOTEND_INDEX];
+
+        #if ENABLED(PID_EXTRUSION_SCALING)
+          cTerm[HOTEND_INDEX] = 0;
+          if (_HOTEND_TEST) {
+            long e_position = stepper.position(E_AXIS);
+            if (e_position > last_e_position) {
+              lpq[lpq_ptr] = e_position - last_e_position;
+              last_e_position = e_position;
+            }
+            else {
+              lpq[lpq_ptr] = 0;
+            }
+            if (++lpq_ptr >= lpq_len) lpq_ptr = 0;
+            cTerm[HOTEND_INDEX] = (lpq[lpq_ptr] * planner.steps_to_mm[E_AXIS]) * PID_PARAM(Kc, HOTEND_INDEX);
+            pid_output += cTerm[HOTEND_INDEX];
+          }
+        #endif // PID_EXTRUSION_SCALING
+
+        if (pid_output > PID_MAX) {
+          if (pid_error[HOTEND_INDEX] > 0) temp_iState[HOTEND_INDEX] -= pid_error[HOTEND_INDEX]; // conditional un-integration
+          pid_output = PID_MAX;
+        }
+        else if (pid_output < 0) {
+          if (pid_error[HOTEND_INDEX] < 0) temp_iState[HOTEND_INDEX] -= pid_error[HOTEND_INDEX]; // conditional un-integration
+          pid_output = 0;
+        }
+      }
+    #else
+      pid_output = constrain(target_temperature[HOTEND_INDEX], 0, PID_MAX);
+    #endif // PID_OPENLOOP
+
+    #if ENABLED(PID_DEBUG)
+      SERIAL_ECHO_START();
+      SERIAL_ECHOPAIR(MSG_PID_DEBUG, HOTEND_INDEX);
+      SERIAL_ECHOPAIR(MSG_PID_DEBUG_INPUT, current_temperature[HOTEND_INDEX]);
+      SERIAL_ECHOPAIR(MSG_PID_DEBUG_OUTPUT, pid_output);
+      SERIAL_ECHOPAIR(MSG_PID_DEBUG_PTERM, pTerm[HOTEND_INDEX]);
+      SERIAL_ECHOPAIR(MSG_PID_DEBUG_ITERM, iTerm[HOTEND_INDEX]);
+      SERIAL_ECHOPAIR(MSG_PID_DEBUG_DTERM, dTerm[HOTEND_INDEX]);
+      #if ENABLED(PID_EXTRUSION_SCALING)
+        SERIAL_ECHOPAIR(MSG_PID_DEBUG_CTERM, cTerm[HOTEND_INDEX]);
+      #endif
+      SERIAL_EOL();
+    #endif // PID_DEBUG
+
+  #else /* PID off */
+    #if HEATER_IDLE_HANDLER
+      if (heater_idle_timeout_exceeded[HOTEND_INDEX])
+        pid_output = 0;
+      else
+    #endif
+    pid_output = (current_temperature[HOTEND_INDEX] < target_temperature[HOTEND_INDEX]) ? PID_MAX : 0;
+  #endif
+
+  return pid_output;
+}
+
+/*
 float Temperature::get_pid_output(int e) {
   #if HOTENDS == 1
     UNUSED(e);
@@ -602,12 +705,13 @@ float Temperature::get_pid_output(int e) {
       SERIAL_EOL;
     #endif //PID_DEBUG
 
-  #else /* PID off */
+  #else //* PID off 
     pid_output = (current_temperature[HOTEND_INDEX] < target_temperature[HOTEND_INDEX]) ? PID_MAX : 0;
   #endif
 
   return pid_output;
 }
+*/
 
 #if ENABLED(PIDTEMPBED)
   float Temperature::get_pid_output_bed() {
@@ -653,6 +757,7 @@ float Temperature::get_pid_output(int e) {
   }
 #endif //PIDTEMPBED
 
+
 /**
  * Manage heating activities for extruder hot-ends and a heated bed
  *  - Acquire updated temperature readings
@@ -695,8 +800,11 @@ void Temperature::manage_heater() {
       // Is it time to check this extruder's heater?
       if (watch_heater_next_ms[e] && ELAPSED(ms, watch_heater_next_ms[e])) {
         // Has it failed to increase enough?
+        static unsigned char temp=0;
         if (degHotend(e) < watch_target_temp[e]) {
           // Stop!
+          temp++;
+          if(temp%10==0){temp=0;NEW_SERIAL_PROTOCOLPGM("J10");TFT_SERIAL_ENTER();} // SEND MESSAGE TO TFT 
           _temp_error(e, PSTR(MSG_T_HEATING_FAILED), PSTR(MSG_HEATING_FAILED_LCD));
         }
         else {
@@ -1245,7 +1353,10 @@ void Temperature::init() {
         else if (PENDING(millis(), *timer)) break;
         *state = TRRunaway;
       case TRRunaway:
-        _temp_error(heater_id, PSTR(MSG_T_THERMAL_RUNAWAY), PSTR(MSG_THERMAL_RUNAWAY));
+      {
+        NEW_SERIAL_PROTOCOLPGM("J10");TFT_SERIAL_ENTER(); // SEND MESSAGE TO TFT 
+        _temp_error(heater_id, PSTR(MSG_T_THERMAL_RUNAWAY), PSTR(MSG_THERMAL_RUNAWAY));        
+      }
     }
   }
 
@@ -1527,10 +1638,13 @@ void Temperature::isr() {
     static unsigned long raw_filwidth_value = 0;
   #endif
 
+
+
+
   #if DISABLED(SLOW_PWM_HEATERS)
-    /**
-     * Standard PWM modulation
-     */
+    
+   //  * Standard PWM modulation
+     
     if (pwm_count == 0) {
       soft_pwm_0 = soft_pwm[0];
       WRITE_HEATER_0(soft_pwm_0 > 0 ? 1 : 0);
@@ -1605,7 +1719,6 @@ void Temperature::isr() {
     // 5:                /  4 = 244.1406 Hz
     pwm_count += _BV(SOFT_PWM_SCALE);
     pwm_count &= 0x7F;
-
   #else // SLOW_PWM_HEATERS
 
     /**
@@ -1713,7 +1826,6 @@ void Temperature::isr() {
     // 5:                /  4 = 244.1406 Hz
     pwm_count += _BV(SOFT_PWM_SCALE);
     pwm_count &= 0x7F;
-
     // increment slow_pwm_count only every 64 pwm_count (e.g., every 8s)
     if ((pwm_count % 64) == 0) {
       slow_pwm_count++;
@@ -1892,13 +2004,14 @@ void Temperature::isr() {
     };
 
     for (uint8_t e = 0; e < COUNT(temp_dir); e++) {
-      const int tdir = temp_dir[e], rawtemp = current_temperature_raw[e] * tdir;
+      const int tdir = temp_dir[e], rawtemp = current_temperature_raw[e] * tdir;     
       if (rawtemp > maxttemp_raw[e] * tdir && target_temperature[e] > 0.0f) max_temp_error(e);
       if (rawtemp < minttemp_raw[e] * tdir && !is_preheating(e) && target_temperature[e] > 0.0f) {
         #ifdef MAX_CONSECUTIVE_LOW_TEMPERATURE_ERROR_ALLOWED
           if (++consecutive_low_temperature_error[e] >= MAX_CONSECUTIVE_LOW_TEMPERATURE_ERROR_ALLOWED)
         #endif
             min_temp_error(e);
+            errorFlag=2;
       }
       #ifdef MAX_CONSECUTIVE_LOW_TEMPERATURE_ERROR_ALLOWED
         else
@@ -1907,13 +2020,25 @@ void Temperature::isr() {
     }
 
     #if HAS_TEMP_BED
+    static char BedMinTempCounter=0;
       #if HEATER_BED_RAW_LO_TEMP > HEATER_BED_RAW_HI_TEMP
         #define GEBED <=
       #else
         #define GEBED >=
       #endif
-      if (current_temperature_bed_raw GEBED bed_maxttemp_raw && target_temperature_bed > 0.0f) max_temp_error(-1);
-      if (bed_minttemp_raw GEBED current_temperature_bed_raw && target_temperature_bed > 0.0f) min_temp_error(-1);
+      if (current_temperature_bed_raw GEBED bed_maxttemp_raw && target_temperature_bed > 0.0f) 
+      {
+        BedMinTempCounter++;
+        if(BedMinTempCounter>20){BedMinTempCounter=0;max_temp_error(-1);errorFlag=5;}
+        else BedMinTempCounter=0;
+       }
+      if (bed_minttemp_raw GEBED current_temperature_bed_raw && target_temperature_bed > 0.0f) 
+      {
+          BedMinTempCounter++;
+          if(BedMinTempCounter>20){BedMinTempCounter=0;min_temp_error(-1);errorFlag=3;}
+          else BedMinTempCounter=0;
+      }
+      else BedMinTempCounter=0;
     #endif
 
   } // temp_count >= OVERSAMPLENR

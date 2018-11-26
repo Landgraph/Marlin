@@ -44,6 +44,12 @@
   void lcd_kill_screen();
   void kill_screen(const char* lcd_msg);
 
+
+
+extern  char FlagResumFromOutage;
+extern uint16_t MyGetFileNr();
+  
+
   #if (ENABLED(LCD_I2C_TYPE_MCP23017) || ENABLED(LCD_I2C_TYPE_MCP23008)) && ENABLED(DETECT_DEVICE)
     bool lcd_detected();
   #else

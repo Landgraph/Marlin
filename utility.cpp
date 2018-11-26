@@ -31,6 +31,7 @@ void safe_delay(millis_t ms) {
     thermalManager.manage_heater();
   }
   delay(ms);
+   thermalManager.manage_heater();
 }
 
 #if ENABLED(ULTRA_LCD)
