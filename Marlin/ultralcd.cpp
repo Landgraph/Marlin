@@ -30,6 +30,13 @@
 #include "configuration_store.h"
 #include "utility.h"
 
+
+//char FlagResumFromOutage=0;
+//extern unsigned char ResumingFlag;
+
+
+
+
 #if HAS_BUZZER && DISABLED(LCD_USE_I2C_BUZZER)
   #include "buzzer.h"
 #endif
@@ -374,9 +381,9 @@ uint8_t lcdDrawUpdate = LCDVIEW_CLEAR_CALL_REDRAW; // Set when the LCD needs to 
   millis_t next_button_update_ms;
   uint8_t lastEncoderBits;
   uint32_t encoderPosition;
-  #if PIN_EXISTS(SD_DETECT)
-    uint8_t lcd_sd_status;
-  #endif
+ // #if PIN_EXISTS(SD_DETECT)
+//    uint8_t lcd_sd_status;
+//  #endif
 
   typedef struct {
     screenFunc_t menu_function;
@@ -828,7 +835,7 @@ void kill_screen(const char* lcd_msg) {
         #else
           #define MSG_1ST_FAN_SPEED MSG_FAN_SPEED
         #endif
-        MENU_MULTIPLIER_ITEM_EDIT(int3, MSG_1ST_FAN_SPEED, &fanSpeeds[0], 0, 255);
+        MENU_MULTIPLIER_ITEM_EDIT(int3, MSG_1ST_FAN_SPEED, &fanSpeeds[0], 0, Max_ModelCooling);
       #endif
       #if HAS_FAN1
         MENU_MULTIPLIER_ITEM_EDIT(int3, MSG_FAN_SPEED " 2", &fanSpeeds[1], 0, 255);
@@ -925,7 +932,7 @@ void kill_screen(const char* lcd_msg) {
       #if FAN_COUNT > 1
         fanSpeeds[active_extruder < FAN_COUNT ? active_extruder : 0] = fan;
       #else
-        fanSpeeds[0] = fan;
+       if(fan>=Max_ModelCooling){ fanSpeeds[0]=Max_ModelCooling;}else fanSpeeds[0] = fan;
       #endif
     #else
       UNUSED(fan);
@@ -2713,11 +2720,11 @@ bool lcd_blink() {
  * No worries. This function is only called from the main thread.
  */
 void lcd_update() {
-
+ 
+/*  
   #if ENABLED(ULTIPANEL)
     static millis_t return_to_status_ms = 0;
     manage_manual_move();
-
     lcd_buttons_update();
 
     // If the action button is pressed...
@@ -2731,32 +2738,41 @@ void lcd_update() {
     }
     else wait_for_unclick = false;
   #endif
-
+*/
   #if ENABLED(SDSUPPORT) && PIN_EXISTS(SD_DETECT)
-
     bool sd_status = IS_SD_INSERTED;
     if (sd_status != lcd_sd_status && lcd_detected()) {
 
       if (sd_status) {
         card.initsd();
         if (lcd_sd_status != 2) LCD_MESSAGEPGM(MSG_SD_INSERTED);
+        #ifdef TFTmodel
+        MyGetFileNr();
+        NEW_SERIAL_PROTOCOLPGM("J00");
+        TFT_SERIAL_ENTER();            
+        #endif
       }
       else {
         card.release();
         if (lcd_sd_status != 2) LCD_MESSAGEPGM(MSG_SD_REMOVED);
+        #ifdef TFTmodel
+        NEW_SERIAL_PROTOCOLPGM("J01");
+        TFT_SERIAL_ENTER();
+        #endif
       }
-
       lcd_sd_status = sd_status;
+      /*
       lcdDrawUpdate = LCDVIEW_CLEAR_CALL_REDRAW;
       lcd_implementation_init( // to maybe revive the LCD if static electricity killed it.
         #if ENABLED(LCD_PROGRESS_BAR)
           currentScreen == lcd_status_screen
         #endif
       );
+      */
     }
 
   #endif //SDSUPPORT && SD_DETECT_PIN
-
+/*
   millis_t ms = millis();
   if (ELAPSED(ms, next_lcd_update_ms)) {
 
@@ -2943,6 +2959,7 @@ void lcd_update() {
         }
     } // LCD_HANDLER_CONDITION
   } // ELAPSED(ms, next_lcd_update_ms)
+  */
 }
 
 void set_utf_strlen(char* s, uint8_t n) {

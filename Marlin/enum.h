@@ -182,7 +182,7 @@ enum TempState {
 /**
  * SD Card
  */
-enum LsAction { LS_SerialPrint, LS_Count, LS_GetFilename };
+enum LsAction { LS_SerialPrint,LS_Count,LS_GetFilename,MySerial3Print };
 
 /**
  * Ultra LCD

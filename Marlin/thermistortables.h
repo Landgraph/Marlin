@@ -26,7 +26,7 @@
 #include "Marlin.h"
 #include "macros.h"
 
-#define OVERSAMPLENR 16
+#define OVERSAMPLENR 3
 
 #define ANY_THERMISTOR_IS(n) (THERMISTORHEATER_0 == n || THERMISTORHEATER_1 == n || THERMISTORHEATER_2 == n || THERMISTORHEATER_3 == n || THERMISTORBED == n)
 

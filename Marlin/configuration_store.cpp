@@ -128,12 +128,23 @@
 #include "ultralcd.h"
 #include "configuration_store.h"
 
+#include "cardreader.h"
+
 #if ENABLED(MESH_BED_LEVELING)
   #include "mesh_bed_leveling.h"
 #endif
 
 uint16_t eeprom_checksum;
 const char version[4] = EEPROM_VERSION;
+
+
+
+
+
+
+
+
+
 
 void _EEPROM_writeData(int &pos, uint8_t* value, uint8_t size) {
   uint8_t c;
@@ -194,6 +205,11 @@ void Config_Postprocess() {
   #define EEPROM_WRITE(VAR) _EEPROM_writeData(eeprom_index, (uint8_t*)&VAR, sizeof(VAR))
   #define EEPROM_READ(VAR) _EEPROM_readData(eeprom_index, (uint8_t*)&VAR, sizeof(VAR))
 
+
+  #define EEPROM_WRITE_VAR(pos, value) _EEPROM_writeData(pos, (uint8_t*)&value, sizeof(value))
+  #define EEPROM_READ_VAR(pos, value) _EEPROM_readData(pos, (uint8_t*)&value, sizeof(value))
+  
+
   /**
    * M500 - Store Configuration
    */
@@ -250,10 +266,10 @@ void Config_Postprocess() {
       for (uint8_t q = 0; q < mesh_num_x * mesh_num_y; q++) EEPROM_WRITE(dummy);
     #endif // MESH_BED_LEVELING
 
-    #if !HAS_BED_PROBE
-      float zprobe_zoffset = 0;
-    #endif
-    EEPROM_WRITE(zprobe_zoffset);
+  //  #if !HAS_BED_PROBE
+  //    float zprobe_zoffset = 0;
+ //   #endif
+ //   EEPROM_WRITE(zprobe_zoffset);
 
     // 9 floats for DELTA / Z_DUAL_ENDSTOPS
     #if ENABLED(DELTA)
@@ -381,7 +397,9 @@ void Config_Postprocess() {
 
     uint16_t stored_checksum;
     EEPROM_READ(stored_checksum);
-
+#ifdef AUTO_BED_LEVELING_BILINEAR
+    ReadAutoBedGridData();
+#endif
     //  SERIAL_ECHOPAIR("Version: [", ver);
     //  SERIAL_ECHOPAIR("] Stored version: [", stored_ver);
     //  SERIAL_CHAR(']');
@@ -394,6 +412,8 @@ void Config_Postprocess() {
       float dummy = 0;
 
       eeprom_checksum = 0; // clear before reading first "real data"
+
+      
 
       // version number match
       EEPROM_READ(planner.axis_steps_per_mm);
@@ -440,7 +460,7 @@ void Config_Postprocess() {
       #if !HAS_BED_PROBE
         float zprobe_zoffset = 0;
       #endif
-      EEPROM_READ(zprobe_zoffset);
+    //  EEPROM_READ(zprobe_zoffset);
 
       #if ENABLED(DELTA)
         EEPROM_READ(endstop_adj);                // 3 floats
@@ -611,7 +631,7 @@ void Config_ResetDefault() {
   #endif
 
   #if HAS_BED_PROBE
-    zprobe_zoffset = Z_PROBE_OFFSET_FROM_EXTRUDER;
+    zprobe_zoffset = NEW_zprobe_zoffset;
   #endif
 
   #if ENABLED(DELTA)
@@ -1030,5 +1050,155 @@ void Config_ResetDefault() {
       SERIAL_EOL;
     #endif
   }
+
+
+
+#ifdef OutageTest
+float last_position[4]={0.0,0.0,0.0,0.0};
+long last_sd_position[1]={0};
+//extern float MYfeedrate_mm_s;
+void OutageSave()
+{
+  char ver[4]="000";
+  int j=20;
+  EEPROM_WRITE_VAR(j,ver);
+ // last_sd_position[0]=card.GetLastSDpos();
+  last_position[0]=current_position[E_AXIS];
+  last_position[1]=current_position[Z_AXIS];
+  last_position[2]=current_position[Y_AXIS];
+  last_position[3]=current_position[X_AXIS]; 
+  
+  EEPROM_WRITE_VAR(j,last_sd_position[0]);
+  EEPROM_WRITE_VAR(j,last_position[0]); //E 
+  EEPROM_WRITE_VAR(j,last_position[1]); //Z
+  EEPROM_WRITE_VAR(j,last_position[2]); //Y
+  EEPROM_WRITE_VAR(j,last_position[3]);  //X
+//  EEPROM_WRITE_VAR(j,MYfeedrate_mm_s);
+  
+
+  
+}
+
+
+void OutageRead()
+{
+    int i=20;
+    char stored_ver[4];
+    char ver[4]=EEPROM_VERSION; 
+    EEPROM_READ_VAR(i,stored_ver);  
+    EEPROM_READ_VAR(i,last_sd_position[0]);  
+    EEPROM_READ_VAR(i,last_position[0]); //E
+    EEPROM_READ_VAR(i,last_position[1]); //Z
+    EEPROM_READ_VAR(i,last_position[2]); //Y
+    EEPROM_READ_VAR(i,last_position[3]); //X
+
+
+  /*  
+    SERIAL_ECHOPAIR(" MYx",last_position[3]);
+    SERIAL_ECHOPAIR(" MYy",last_position[2]);
+    SERIAL_ECHOPAIR(" MYz",last_position[1]);
+    SERIAL_ECHOPAIR(" MYe",last_position[0]);
+    SERIAL_ECHOPAIR(" SD",last_sd_position[0]);
+  */	
+}
+
+#endif
+
+void SaveWay2Leveling()
+{
+  char ver[4]="000";
+  int j=10;
+  EEPROM_WRITE_VAR(j,ver);
+  EEPROM_WRITE_VAR(j,Manual_Leveling);   
+}
+
+void ReadWay2Leveling()
+{
+    int i=10;
+    char stored_ver[4];
+    EEPROM_READ_VAR(i,stored_ver); 
+    EEPROM_READ_VAR(i,Manual_Leveling);  
+}
+
+
+unsigned char FirstBootFlag;
+#define bootEEPROM_OFFSET 85
+void SaveFirstBootFlag()
+{
+  char ver[4]="000";
+  int j=bootEEPROM_OFFSET;
+  FirstBootFlag=0xa5;
+  EEPROM_WRITE_VAR(j,ver);
+  EEPROM_WRITE_VAR(j,FirstBootFlag);
+}
+void readFirstBootFlag()
+{
+    int i=bootEEPROM_OFFSET;
+    char stored_ver[4];
+ //   char ver[4]=EEPROM_VERSION; 
+    EEPROM_READ_VAR(i,stored_ver); 
+    EEPROM_READ_VAR(i,FirstBootFlag);
+}
+
+#define zEEPROM_OFFSET 50
+//float last_z_offset[1]={0.0};
+float last_z_offset=0;
+void SaveMyZoffset()
+{
+  char ver[4]="000";
+  int j=zEEPROM_OFFSET;
+  last_z_offset=Current_z_offset;
+  EEPROM_WRITE_VAR(j,ver);
+  EEPROM_WRITE_VAR(j,last_z_offset);
+  
+
+}
+
+void ReadMyZoffset()
+{
+    int i=zEEPROM_OFFSET;
+    char stored_ver[4];
+    char ver[4]=EEPROM_VERSION; 
+    EEPROM_READ_VAR(i,stored_ver); 
+    EEPROM_READ_VAR(i,last_z_offset);   
+		
+}
+
+#ifdef AUTO_BED_LEVELING_BILINEAR
+
+#define sEEPROM_OFFSET 2000
+void SaveAutoBedGridData()
+{
+  char ver[4]="000";
+  int j=sEEPROM_OFFSET;
+
+  EEPROM_WRITE_VAR(j,ver);
+  EEPROM_WRITE_VAR(j,bilinear_grid_spacing); 
+  EEPROM_WRITE_VAR(j,bilinear_start);   
+  EEPROM_WRITE_VAR(j,bed_level_grid);  
+  EEPROM_WRITE_VAR(j,NEW_zprobe_zoffset); 
+   
+//  EEPROM_WRITE_VAR(j,Manual_Leveling );
+
+   
+ }
+void ReadAutoBedGridData()
+{
+    int i=sEEPROM_OFFSET;
+    char stored_ver[4];
+    char ver[4]=EEPROM_VERSION; 
+
+ 
+    EEPROM_READ_VAR(i,stored_ver); 
+    EEPROM_READ_VAR(i,bilinear_grid_spacing);   
+    EEPROM_READ_VAR(i,bilinear_start);   
+    EEPROM_READ_VAR(i,bed_level_grid); 
+    EEPROM_READ_VAR(i,NEW_zprobe_zoffset); 
+   
+//    EEPROM_READ_VAR(i,Manual_Leveling); 
+    zprobe_zoffset=NEW_zprobe_zoffset;  
+
+}
+#endif
 
 #endif // !DISABLE_M503

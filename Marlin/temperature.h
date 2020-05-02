@@ -65,6 +65,7 @@ class Temperature {
       static float redundant_temperature;
     #endif
 
+
     static uint8_t soft_pwm_bed;
 
     #if ENABLED(FAN_SOFT_PWM)

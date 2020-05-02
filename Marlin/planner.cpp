@@ -716,13 +716,17 @@ void Planner::_buffer_line(const float &a, const float &b, const float &c, const
         de = 0; // no difference
         SERIAL_ECHO_START;
         SERIAL_ECHOLNPGM(MSG_ERR_COLD_EXTRUDE_STOP);
+        #ifdef TFTmodel
+        NEW_SERIAL_PROTOCOLPGM("J13");//j13ok MSG_ERR_COLD_EXTRUDE_STOP
+        TFT_SERIAL_ENTER();
+        #endif
       }
       #if ENABLED(PREVENT_LENGTHY_EXTRUDE)
         if (labs(de) > (int32_t)axis_steps_per_mm[E_AXIS_N] * (EXTRUDE_MAXLENGTH)) { // It's not important to get max. extrusion length in a precision < 1mm, so save some cycles and cast to int
           position[E_AXIS] = target[E_AXIS]; // Behave as if the move really took place, but ignore E part
           de = 0; // no difference
           SERIAL_ECHO_START;
-          SERIAL_ECHOLNPGM(MSG_ERR_LONG_EXTRUDE_STOP);
+          SERIAL_ECHOLNPGM(MSG_ERR_LONG_EXTRUDE_STOP);       
         }
       #endif
     }
@@ -1145,7 +1149,7 @@ void Planner::_buffer_line(const float &a, const float &b, const float &c, const
   // Initial limit on the segment entry velocity
   float vmax_junction;
 
-  #if 0  // Use old jerk for now
+  #if 0// Use old jerk for now
 
     float junction_deviation = 0.1;
 
@@ -1205,6 +1209,23 @@ void Planner::_buffer_line(const float &a, const float &b, const float &c, const
 
   float safe_speed = block->nominal_speed;
   bool limited = false;
+LOOP_XYZE(i){
+const float jerk = fabs(current_speed[i]), maxj = max_jerk[i];
+    if (jerk > maxj) {
+      if (limited) {
+        const float mjerk = maxj * block->nominal_speed;
+        if (jerk * safe_speed > mjerk) safe_speed = mjerk / jerk;
+      }
+      else {
+        ++limited;
+        safe_speed = maxj;
+      }
+    }
+  }
+
+
+  
+  /*
   LOOP_XYZE(i) {
     float jerk = fabs(current_speed[i]);
     if (jerk > max_jerk[i]) {
@@ -1223,7 +1244,7 @@ void Planner::_buffer_line(const float &a, const float &b, const float &c, const
       }
     }
   }
-
+*/ 
   if (moves_queued > 1 && previous_nominal_speed > 0.0001) {
     // Estimate a maximum velocity allowed at a joint of two successive segments.
     // If this maximum velocity allowed is lower than the minimum of the entry / exit safe velocities,
@@ -1247,24 +1268,18 @@ void Planner::_buffer_line(const float &a, const float &b, const float &c, const
         v_entry *= v_factor;
       }
       // Calculate jerk depending on whether the axis is coasting in the same direction or reversing.
-      float jerk = 
-        (v_exit > v_entry) ?
-          ((v_entry > 0.f || v_exit < 0.f) ?
-            // coasting
-            (v_exit - v_entry) : 
-            // axis reversal
-            max(v_exit, -v_entry)) :
-          // v_exit <= v_entry
-          ((v_entry < 0.f || v_exit > 0.f) ?
-            // coasting
-            (v_entry - v_exit) :
-            // axis reversal
-            max(-v_exit, v_entry));
+      const float jerk = (v_exit > v_entry)
+          ? //                                  coasting             axis reversal
+            ( (v_entry > 0.f || v_exit < 0.f) ? (v_exit - v_entry) : max(v_exit, -v_entry) )
+          : // v_exit <= v_entry                coasting             axis reversal
+            ( (v_entry < 0.f || v_exit > 0.f) ? (v_entry - v_exit) : max(-v_exit, v_entry) );
+
       if (jerk > max_jerk[axis]) {
         v_factor *= max_jerk[axis] / jerk;
-        limited = true;
+        ++limited;
       }
     }
+    
     if (limited) vmax_junction *= v_factor;
     // Now the transition velocity is known, which maximizes the shared exit / entry velocity while
     // respecting the jerk factors, it may be possible, that applying separate safe exit / entry velocities will achieve faster prints.
@@ -1381,6 +1396,7 @@ void Planner::_set_position_mm(const float &a, const float &b, const float &c, c
   previous_nominal_speed = 0.0; // Resets planner junction speeds. Assumes start from rest.
   ZERO(previous_speed);
 }
+
 
 void Planner::set_position_mm_kinematic(const float position[NUM_AXIS]) {
   #if PLANNER_LEVELING
