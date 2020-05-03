@@ -90,7 +90,7 @@ extern unsigned char PowerTestFlag;
 #if HAS_BED_PROBE 
   extern float NEW_zprobe_zoffset;
 #endif
-#ifdef AUTO_BED_LEVELING_BILINEAR
+#if ENABLED(AUTO_BED_LEVELING_BILINEAR)
 extern void setupMyZoffset();
 #endif
 

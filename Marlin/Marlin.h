@@ -412,11 +412,4 @@ void do_blocking_move_to_x(const float &x, const float &fr_mm_s=0.0);
 void do_blocking_move_to_z(const float &z, const float &fr_mm_s=0.0);
 void do_blocking_move_to_xy(const float &x, const float &y, const float &fr_mm_s=0.0);
 
-#if ENABLED(AUTO_BED_LEVELING_BILINEAR)
-extern  int bilinear_grid_spacing[2], bilinear_start[2];
-extern  float bed_level_grid[ABL_GRID_POINTS_X][ABL_GRID_POINTS_Y];
-#endif
-
- 
-
 #endif //MARLIN_H
