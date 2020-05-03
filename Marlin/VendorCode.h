@@ -26,6 +26,9 @@
 #include "MarlinSerial.h"
 #include "types.h"
 
+/******************************************************************/
+/*                          Marlin_main                           */
+/******************************************************************/
 
 #define NEW_SERIAL_PROTOCOL(x) (NewSerial.print(x))
 #define NEW_SERIAL_PROTOCOL_F(x,y) (NewSerial.print(x,y))
@@ -101,5 +104,41 @@ extern uint16_t MyGetFileNr();
 extern void USBOnLineTest();
 extern void SDCARD_UPDATA();
 extern void pauseCMDsend();
+
+/******************************************************************/
+/*                      configuration_store                       */
+/******************************************************************/
+
+#if ENABLED(EEPROM_SETTINGS)
+    void SaveAutoBedGridData();
+    void ReadAutoBedGridData();
+
+    #ifdef OutageTest
+    static bool RestartFlag=false;
+    void OutageSave();
+    void OutageRead();
+    extern float last_position[4];
+    extern long last_sd_position[1];
+    #endif
+    //void SaveMyZoffset();
+    //void ReadMyZoffset();
+    extern float Current_z_offset;
+    //extern float last_z_offset[1];
+    extern float last_z_offset;
+    extern unsigned char FirstBootFlag;
+    void SaveFirstBootFlag();
+    void readFirstBootFlag();
+
+    extern float Current_z_offset;
+    //extern float last_z_offset[1];
+
+
+    void SaveWay2Leveling();
+    void ReadWay2Leveling();
+    extern unsigned char Manual_Leveling;
+    extern unsigned char FirstBootFlag;
+    void SaveFirstBootFlag();
+    void readFirstBootFlag();
+#endif //ENABLED(EEPROM_SETTINGS)
 
 #endif //VENDORCODE_H
