@@ -83,6 +83,7 @@
     #define FAN2_PIN          -1// 44
     #define V5_COOLING_PIN           44
 
+  #undef CONTROLLERFAN_PIN
   #define CONTROLLERFAN_PIN    7
   #ifdef OutageTest
           #define OUTAGETEST_PIN       79
