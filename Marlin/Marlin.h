@@ -348,7 +348,6 @@ float code_value_temp_diff();
 
 #if HAS_BED_PROBE
   extern float zprobe_zoffset;
-  extern float NEW_zprobe_zoffset;
 #endif
 
 #if ENABLED(HOST_KEEPALIVE_FEATURE)

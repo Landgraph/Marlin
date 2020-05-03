@@ -26,7 +26,6 @@
  * This firmware is a mashup between Sprinter and grbl.
  *  - https://github.com/kliment/Sprinter
  *  - https://github.com/simen/grbl/tree
- *e
  * It has preliminary support for Matthew Roberts advance algorithm
  *  - http://reprap.org/pipermail/reprap-dev/2011-May/003323.html
  */
@@ -457,7 +456,6 @@ static millis_t stepper_inactive_time = (DEFAULT_STEPPER_DEACTIVE_TIME) * 1000UL
 static uint8_t target_extruder; 
 
 #if HAS_BED_PROBE 
-  float NEW_zprobe_zoffset;
   float zprobe_zoffset;
 #endif
 

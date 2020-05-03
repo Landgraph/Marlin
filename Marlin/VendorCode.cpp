@@ -33,6 +33,10 @@
   extern CardReader card; //defined in Marlin_main.cpp
 #endif
 
+#if HAS_BED_PROBE 
+  float NEW_zprobe_zoffset;
+#endif
+
 extern long gcode_N, gcode_LastN, Stopped_gcode_LastN;
 extern uint8_t cmd_queue_index_r,
                cmd_queue_index_w,

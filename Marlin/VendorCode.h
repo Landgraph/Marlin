@@ -86,6 +86,9 @@ extern unsigned char PowerTestFlag;
 #if PIN_EXISTS(SD_DETECT)
   extern uint8_t lcd_sd_status;
 #endif
+#if HAS_BED_PROBE 
+  extern float NEW_zprobe_zoffset;
+#endif
 #ifdef AUTO_BED_LEVELING_BILINEAR
 extern void setupMyZoffset();
 #endif
