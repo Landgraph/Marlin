@@ -79,6 +79,8 @@ extern char seekdataflag;
 extern bool UsbOnLineFlag;
 extern bool USBConnectFlag;
 
+extern const unsigned int Max_ModelCooling;
+
 #if defined(OutageTest)
 extern int PowerInt;
 extern unsigned char PowerTestFlag;
