@@ -44,8 +44,6 @@
   #include "VendorCode.h"
 #endif
 
-extern char errorFlag;
-
 #ifdef USBCON
   #include "HardwareSerial.h"
   #if ENABLED(BLUETOOTH)
@@ -94,7 +92,6 @@ extern const char errormagic[] PROGMEM;
 #define SERIAL_ERRORPGM(x)             SERIAL_PROTOCOLPGM(x)
 #define SERIAL_ERRORLN(x)              SERIAL_PROTOCOLLN(x)
 #define SERIAL_ERRORLNPGM(x)           SERIAL_PROTOCOLLNPGM(x)
-
 
 void serial_echopair_P(const char* s_P, const char *v);
 void serial_echopair_P(const char* s_P, char v);

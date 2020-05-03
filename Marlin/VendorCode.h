@@ -71,6 +71,7 @@ void NEWClearToSend();
 
 extern char TFTpausingFlag;
 extern char PointTestFlag;
+extern char errorFlag;
 extern char FlagResumFromOutage;
 extern unsigned char ResumingFlag;
 extern char sdcardstartprintingflag;
