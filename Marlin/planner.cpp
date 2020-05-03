@@ -1217,7 +1217,7 @@ const float jerk = fabs(current_speed[i]), maxj = max_jerk[i];
         if (jerk * safe_speed > mjerk) safe_speed = mjerk / jerk;
       }
       else {
-        ++limited;
+        limited = true;
         safe_speed = maxj;
       }
     }
@@ -1276,7 +1276,7 @@ const float jerk = fabs(current_speed[i]), maxj = max_jerk[i];
 
       if (jerk > max_jerk[axis]) {
         v_factor *= max_jerk[axis] / jerk;
-        ++limited;
+        limited = true;
       }
     }
     
