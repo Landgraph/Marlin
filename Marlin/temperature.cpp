@@ -528,107 +528,7 @@ void Temperature::min_temp_error(int8_t e) {
   #endif
 }
 
-
-float Temperature::get_pid_output(int e) {
-  #if HOTENDS == 1
-    UNUSED(e);
-    #define _HOTEND_TEST     true
-  #else
-    #define _HOTEND_TEST     e == active_extruder
-  #endif
-  float pid_output;
-  #if ENABLED(PIDTEMP)
-    #if DISABLED(PID_OPENLOOP)
-      pid_error[HOTEND_INDEX] = target_temperature[HOTEND_INDEX] - current_temperature[HOTEND_INDEX];
-      dTerm[HOTEND_INDEX] = K2 * PID_PARAM(Kd, HOTEND_INDEX) * (current_temperature[HOTEND_INDEX] - temp_dState[HOTEND_INDEX]) + K1 * dTerm[HOTEND_INDEX];
-      temp_dState[HOTEND_INDEX] = current_temperature[HOTEND_INDEX];
-      #if HEATER_IDLE_HANDLER
-        if (heater_idle_timeout_exceeded[HOTEND_INDEX]) {
-          pid_output = 0;
-          pid_reset[HOTEND_INDEX] = true;
-        }
-        else
-      #endif
-      if (pid_error[HOTEND_INDEX] > PID_FUNCTIONAL_RANGE) {
-        pid_output = BANG_MAX;
-        pid_reset[HOTEND_INDEX] = true;
-      }
-      else if (pid_error[HOTEND_INDEX] < -(PID_FUNCTIONAL_RANGE) || target_temperature[HOTEND_INDEX] == 0
-        #if HEATER_IDLE_HANDLER
-          || heater_idle_timeout_exceeded[HOTEND_INDEX]
-        #endif
-        ) {
-        pid_output = 0;
-        pid_reset[HOTEND_INDEX] = true;
-      }
-      else {
-        if (pid_reset[HOTEND_INDEX]) {
-          temp_iState[HOTEND_INDEX] = 0.0;
-          pid_reset[HOTEND_INDEX] = false;
-        }
-        pTerm[HOTEND_INDEX] = PID_PARAM(Kp, HOTEND_INDEX) * pid_error[HOTEND_INDEX];
-        temp_iState[HOTEND_INDEX] += pid_error[HOTEND_INDEX];
-        iTerm[HOTEND_INDEX] = PID_PARAM(Ki, HOTEND_INDEX) * temp_iState[HOTEND_INDEX];
-
-        pid_output = pTerm[HOTEND_INDEX] + iTerm[HOTEND_INDEX] - dTerm[HOTEND_INDEX];
-
-        #if ENABLED(PID_EXTRUSION_SCALING)
-          cTerm[HOTEND_INDEX] = 0;
-          if (_HOTEND_TEST) {
-            long e_position = stepper.position(E_AXIS);
-            if (e_position > last_e_position) {
-              lpq[lpq_ptr] = e_position - last_e_position;
-              last_e_position = e_position;
-            }
-            else {
-              lpq[lpq_ptr] = 0;
-            }
-            if (++lpq_ptr >= lpq_len) lpq_ptr = 0;
-            cTerm[HOTEND_INDEX] = (lpq[lpq_ptr] * planner.steps_to_mm[E_AXIS]) * PID_PARAM(Kc, HOTEND_INDEX);
-            pid_output += cTerm[HOTEND_INDEX];
-          }
-        #endif // PID_EXTRUSION_SCALING
-
-        if (pid_output > PID_MAX) {
-          if (pid_error[HOTEND_INDEX] > 0) temp_iState[HOTEND_INDEX] -= pid_error[HOTEND_INDEX]; // conditional un-integration
-          pid_output = PID_MAX;
-        }
-        else if (pid_output < 0) {
-          if (pid_error[HOTEND_INDEX] < 0) temp_iState[HOTEND_INDEX] -= pid_error[HOTEND_INDEX]; // conditional un-integration
-          pid_output = 0;
-        }
-      }
-    #else
-      pid_output = constrain(target_temperature[HOTEND_INDEX], 0, PID_MAX);
-    #endif // PID_OPENLOOP
-
-    #if ENABLED(PID_DEBUG)
-      SERIAL_ECHO_START();
-      SERIAL_ECHOPAIR(MSG_PID_DEBUG, HOTEND_INDEX);
-      SERIAL_ECHOPAIR(MSG_PID_DEBUG_INPUT, current_temperature[HOTEND_INDEX]);
-      SERIAL_ECHOPAIR(MSG_PID_DEBUG_OUTPUT, pid_output);
-      SERIAL_ECHOPAIR(MSG_PID_DEBUG_PTERM, pTerm[HOTEND_INDEX]);
-      SERIAL_ECHOPAIR(MSG_PID_DEBUG_ITERM, iTerm[HOTEND_INDEX]);
-      SERIAL_ECHOPAIR(MSG_PID_DEBUG_DTERM, dTerm[HOTEND_INDEX]);
-      #if ENABLED(PID_EXTRUSION_SCALING)
-        SERIAL_ECHOPAIR(MSG_PID_DEBUG_CTERM, cTerm[HOTEND_INDEX]);
-      #endif
-      SERIAL_EOL();
-    #endif // PID_DEBUG
-
-  #else /* PID off */
-    #if HEATER_IDLE_HANDLER
-      if (heater_idle_timeout_exceeded[HOTEND_INDEX])
-        pid_output = 0;
-      else
-    #endif
-    pid_output = (current_temperature[HOTEND_INDEX] < target_temperature[HOTEND_INDEX]) ? PID_MAX : 0;
-  #endif
-
-  return pid_output;
-}
-
-/*
+#ifndef VENDOR_CODE
 float Temperature::get_pid_output(int e) {
   #if HOTENDS == 1
     UNUSED(e);
@@ -711,7 +611,7 @@ float Temperature::get_pid_output(int e) {
 
   return pid_output;
 }
-*/
+#endif // #ifndef VENDOR_CODE
 
 #if ENABLED(PIDTEMPBED)
   float Temperature::get_pid_output_bed() {
