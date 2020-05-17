@@ -702,18 +702,20 @@ void CardReader::printingHasFinished() {
     print_job_timer.stop();
     if (print_job_timer.duration() > 60)
       enqueue_and_echo_commands_P(PSTR("M31"));
-      
-  #if defined(OutageTest)
-    PowerTestFlag=false;
-    seekdataflag=0;
-    WRITE(OUTAGECON_PIN,LOW);
-    FlagResumFromOutage=0;
+
+ #ifdef VENDOR_CODE
+    #if defined(OutageTest)
+    PowerTestFlag = false;
+    seekdataflag = 0;
+    WRITE(OUTAGECON_PIN, LOW);
+    FlagResumFromOutage = 0;
     #endif
     #if defined(TFTmodel)
-    NEW_SERIAL_PROTOCOLPGM("J14");//PRINT DONE
+    NEW_SERIAL_PROTOCOLPGM("J14"); //PRINT DONE
     TFT_SERIAL_ENTER();
-    #endif     
-  }  
+    #endif
+#endif //#ifdef VENDOR_CODE
+  }
 }
 
 #endif //SDSUPPORT

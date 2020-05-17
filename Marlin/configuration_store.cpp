@@ -257,10 +257,12 @@ void Config_Postprocess() {
       for (uint8_t q = 0; q < mesh_num_x * mesh_num_y; q++) EEPROM_WRITE(dummy);
     #endif // MESH_BED_LEVELING
 
-  //  #if !HAS_BED_PROBE
-  //    float zprobe_zoffset = 0;
- //   #endif
- //   EEPROM_WRITE(zprobe_zoffset);
+#ifndef VENDOR_CODE
+    #if !HAS_BED_PROBE
+      float zprobe_zoffset = 0;
+    #endif
+    EEPROM_WRITE(zprobe_zoffset);
+#endif //#ifndef VENDOR_CODE
 
     // 9 floats for DELTA / Z_DUAL_ENDSTOPS
     #if ENABLED(DELTA)
@@ -388,9 +390,11 @@ void Config_Postprocess() {
 
     uint16_t stored_checksum;
     EEPROM_READ(stored_checksum);
+#ifdef VENDOR_CODE
 #ifdef AUTO_BED_LEVELING_BILINEAR
     ReadAutoBedGridData();
 #endif
+#endif //#ifdef VENDOR_CODE
     //  SERIAL_ECHOPAIR("Version: [", ver);
     //  SERIAL_ECHOPAIR("] Stored version: [", stored_ver);
     //  SERIAL_CHAR(']');
@@ -403,8 +407,6 @@ void Config_Postprocess() {
       float dummy = 0;
 
       eeprom_checksum = 0; // clear before reading first "real data"
-
-      
 
       // version number match
       EEPROM_READ(planner.axis_steps_per_mm);
@@ -451,7 +453,10 @@ void Config_Postprocess() {
       #if !HAS_BED_PROBE
         float zprobe_zoffset = 0;
       #endif
-    //  EEPROM_READ(zprobe_zoffset);
+
+#ifndef VENDOR_CODE
+      EEPROM_READ(zprobe_zoffset);
+#endif //#ifndef VENDOR_CODE
 
       #if ENABLED(DELTA)
         EEPROM_READ(endstop_adj);                // 3 floats
@@ -622,7 +627,11 @@ void Config_ResetDefault() {
   #endif
 
   #if HAS_BED_PROBE
+#ifdef VENDOR_CODE
     zprobe_zoffset = NEW_zprobe_zoffset;
+#else //#ifndef VENDOR_CODE
+    zprobe_zoffset = Z_PROBE_OFFSET_FROM_EXTRUDER;
+#endif  //#ifdef VENDOR_CODE else
   #endif
 
   #if ENABLED(DELTA)

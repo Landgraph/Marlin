@@ -428,7 +428,9 @@ uint8_t Temperature::soft_pwm[HOTENDS];
         }
         return;
       }
-    //  lcd_update();
+#ifndef VENDOR_CODE
+      lcd_update();
+#endif //#ifndef VENDOR_CODE
     }
     if (!wait_for_heatup) disable_all_heaters();
   }
@@ -605,7 +607,7 @@ float Temperature::get_pid_output(int e) {
       SERIAL_EOL;
     #endif //PID_DEBUG
 
-  #else //* PID off 
+  #else /* PID off */
     pid_output = (current_temperature[HOTEND_INDEX] < target_temperature[HOTEND_INDEX]) ? PID_MAX : 0;
   #endif
 
@@ -700,6 +702,7 @@ void Temperature::manage_heater() {
       // Is it time to check this extruder's heater?
       if (watch_heater_next_ms[e] && ELAPSED(ms, watch_heater_next_ms[e])) {
         // Has it failed to increase enough?
+#ifdef VENDOR_CODE
         static unsigned char temp=0;
         if (degHotend(e) < watch_target_temp[e]) {
           // Stop!
@@ -707,6 +710,12 @@ void Temperature::manage_heater() {
           if(temp%10==0){temp=0;NEW_SERIAL_PROTOCOLPGM("J10");TFT_SERIAL_ENTER();} // SEND MESSAGE TO TFT 
           _temp_error(e, PSTR(MSG_T_HEATING_FAILED), PSTR(MSG_HEATING_FAILED_LCD));
         }
+#else //#ifdef VENDOR_CODE
+        if (degHotend(e) < watch_target_temp[e]) {
+          // Stop!
+          _temp_error(e, PSTR(MSG_T_HEATING_FAILED), PSTR(MSG_HEATING_FAILED_LCD));
+        }
+ #endif //#ifdef VENDOR_CODE else
         else {
           // Start again if the target is still far off
           start_watching_heater(e);
@@ -1252,11 +1261,17 @@ void Temperature::init() {
         }
         else if (PENDING(millis(), *timer)) break;
         *state = TRRunaway;
+#ifdef VENDOR_CODE
       case TRRunaway:
+
       {
         NEW_SERIAL_PROTOCOLPGM("J10");TFT_SERIAL_ENTER(); // SEND MESSAGE TO TFT 
         _temp_error(heater_id, PSTR(MSG_T_THERMAL_RUNAWAY), PSTR(MSG_THERMAL_RUNAWAY));        
       }
+#else //#ifndef VENDOR_CODE
+      case TRRunaway:
+        _temp_error(heater_id, PSTR(MSG_T_THERMAL_RUNAWAY), PSTR(MSG_THERMAL_RUNAWAY));
+#endif //#ifdef VENDOR_CODE else
     }
   }
 
@@ -1538,13 +1553,10 @@ void Temperature::isr() {
     static unsigned long raw_filwidth_value = 0;
   #endif
 
-
-
-
   #if DISABLED(SLOW_PWM_HEATERS)
-    
-   //  * Standard PWM modulation
-     
+    /**
+     * Standard PWM modulation
+     */
     if (pwm_count == 0) {
       soft_pwm_0 = soft_pwm[0];
       WRITE_HEATER_0(soft_pwm_0 > 0 ? 1 : 0);
@@ -1619,6 +1631,7 @@ void Temperature::isr() {
     // 5:                /  4 = 244.1406 Hz
     pwm_count += _BV(SOFT_PWM_SCALE);
     pwm_count &= 0x7F;
+
   #else // SLOW_PWM_HEATERS
 
     /**
@@ -1726,6 +1739,7 @@ void Temperature::isr() {
     // 5:                /  4 = 244.1406 Hz
     pwm_count += _BV(SOFT_PWM_SCALE);
     pwm_count &= 0x7F;
+
     // increment slow_pwm_count only every 64 pwm_count (e.g., every 8s)
     if ((pwm_count % 64) == 0) {
       slow_pwm_count++;
@@ -1911,7 +1925,9 @@ void Temperature::isr() {
           if (++consecutive_low_temperature_error[e] >= MAX_CONSECUTIVE_LOW_TEMPERATURE_ERROR_ALLOWED)
         #endif
             min_temp_error(e);
+#ifdef VENDOR_CODE
             errorFlag=2;
+#endif //#ifdef VENDOR_CODE
       }
       #ifdef MAX_CONSECUTIVE_LOW_TEMPERATURE_ERROR_ALLOWED
         else
@@ -1920,7 +1936,8 @@ void Temperature::isr() {
     }
 
     #if HAS_TEMP_BED
-    static char BedMinTempCounter=0;
+#ifdef VENDOR_CODE
+      static char BedMinTempCounter=0;
       #if HEATER_BED_RAW_LO_TEMP > HEATER_BED_RAW_HI_TEMP
         #define GEBED <=
       #else
@@ -1931,7 +1948,7 @@ void Temperature::isr() {
         BedMinTempCounter++;
         if(BedMinTempCounter>20){BedMinTempCounter=0;max_temp_error(-1);errorFlag=5;}
         else BedMinTempCounter=0;
-       }
+      }
       if (bed_minttemp_raw GEBED current_temperature_bed_raw && target_temperature_bed > 0.0f) 
       {
           BedMinTempCounter++;
@@ -1939,6 +1956,15 @@ void Temperature::isr() {
           else BedMinTempCounter=0;
       }
       else BedMinTempCounter=0;
+#else //#ifndef VENDOR_CODE
+      #if HEATER_BED_RAW_LO_TEMP > HEATER_BED_RAW_HI_TEMP
+        #define GEBED <=
+      #else
+        #define GEBED >=
+      #endif
+      if (current_temperature_bed_raw GEBED bed_maxttemp_raw && target_temperature_bed > 0.0f) max_temp_error(-1);
+      if (bed_minttemp_raw GEBED current_temperature_bed_raw && target_temperature_bed > 0.0f) min_temp_error(-1);
+#endif  //#ifdef VENDOR_CODE else
     #endif
 
   } // temp_count >= OVERSAMPLENR

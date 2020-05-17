@@ -1103,7 +1103,9 @@ inline void get_serial_commands() {
   inline void get_sdcard_commands() {
     static bool stop_buffering = false,
                 sd_comment_mode = false;
+#ifdef VENDOR_CODE
     char i,j;
+#endif //#ifdef VENDOR_CODE
     if (!card.sdprinting) return;
 
     /**
@@ -1117,7 +1119,11 @@ inline void get_serial_commands() {
 
     uint16_t sd_count = 0;
     bool card_eof = card.eof();
+#ifdef VENDOR_CODE
     while (commands_in_queue < BUFSIZE && !card_eof && !stop_buffering&&!seekdataflag) {
+#else //#ifndef VENDOR_CODE
+    while (commands_in_queue < BUFSIZE && !card_eof && !stop_buffering) {
+#endif //#ifdef VENDOR_CODE else
       int16_t n = card.get();
       char sd_char = (char)n;
       card_eof = card.eof();     
@@ -1133,7 +1139,9 @@ inline void get_serial_commands() {
         else if (n == -1) {
           SERIAL_ERROR_START;
           SERIAL_ECHOLNPGM(MSG_SD_ERR_READ);
+#ifdef VENDOR_CODE
           errorFlag=1;
+#endif //#ifdef VENDOR_CODE
         }
         if (sd_char == '#') stop_buffering = true;
 
@@ -1155,33 +1163,36 @@ inline void get_serial_commands() {
       else {
         if (sd_char == ';') sd_comment_mode = true;
         if (!sd_comment_mode) command_queue[cmd_queue_index_w][sd_count++] = sd_char;
+#ifdef VENDOR_CODE
         if(sd_char=='G'){last_sd_position[0]=card.GetLastSDpos();}
-        
+#endif //#ifdef VENDOR_CODE
       }
      
     }
-  if(seekdataflag)
-  {             
-      for(i=0;i<MAX_CMD_SIZE;i++) //clean buf
+#ifdef VENDOR_CODE
+    if (seekdataflag)
+    {
+      for (i = 0; i < MAX_CMD_SIZE; i++) //clean buf
       {
-      for(j=0;j<BUFSIZE;j++)
-      {
-        command_queue[j][i]=0; 
-      }                     
-      }                  
-    destination[E_AXIS]=last_position[0];
-    current_position[E_AXIS]=last_position[0];
-    planner.set_e_position_mm(last_position[0]);
-    planner.buffer_line (X_MIN_POS,Y_MIN_POS,last_position[1],last_position[0],feedrate_percentage,active_extruder);
-    destination[X_AXIS]=last_position[3]; //SET A NEW ORIGNAL COORDINATE    
-     destination[Y_AXIS]=last_position[2];
-     if(current_position[Z_AXIS]>0.3) current_position[Z_AXIS]=last_position[1]-0.1;
-     else current_position[Z_AXIS]=last_position[1];   
-      feedrate_mm_s=MMM_TO_MMS(2000.0);     
-     seekdataflag=0;    
-  }
-
-    
+        for (j = 0; j < BUFSIZE; j++)
+        {
+          command_queue[j][i] = 0;
+        }
+      }
+      destination[E_AXIS] = last_position[0];
+      current_position[E_AXIS] = last_position[0];
+      planner.set_e_position_mm(last_position[0]);
+      planner.buffer_line(X_MIN_POS, Y_MIN_POS, last_position[1], last_position[0], feedrate_percentage, active_extruder);
+      destination[X_AXIS] = last_position[3]; //SET A NEW ORIGNAL COORDINATE
+      destination[Y_AXIS] = last_position[2];
+      if (current_position[Z_AXIS] > 0.3)
+        current_position[Z_AXIS] = last_position[1] - 0.1;
+      else
+        current_position[Z_AXIS] = last_position[1];
+      feedrate_mm_s = MMM_TO_MMS(2000.0);
+      seekdataflag = 0;
+    }
+#endif // #ifdef VENDOR_CODE
   }
 
 #endif // SDSUPPORT
@@ -2860,9 +2871,7 @@ void gcode_get_destination() {
     if (code_seen(axis_codes[i]))
       destination[i] = code_value_axis_units(i) + (axis_relative_modes[i] || relative_mode ? current_position[i] : 0);
     else
-     { destination[i] = current_position[i];
-     }
-     
+      destination[i] = current_position[i];
   }
 
   if (code_seen('F') && code_value_linear_units() > 0.0)
@@ -2980,18 +2989,21 @@ inline void gcode_G0_G1(
       }
 
     #endif //FWRETRACT
-	
-        #if defined(OutageTest)
-        if((ResumingFlag==1)&&FlagResumFromOutage)
-    {
-      if(destination[E_AXIS]<20)return;
-    }    
-    #endif	
+
+#ifdef VENDOR_CODE
+#if defined(OutageTest)
+      if ((ResumingFlag == 1) && FlagResumFromOutage)
+      {
+        if (destination[E_AXIS] < 20)
+          return;
+      }
+#endif
+#endif //#ifdef VENDOR_CODE
 
     #if IS_SCARA
       fast_move ? prepare_uninterpolated_move_to_destination() : prepare_move_to_destination();
     #else
-      prepare_move_to_destination();
+    prepare_move_to_destination();
     #endif
   }
 }
@@ -3101,32 +3113,33 @@ inline void gcode_G4() {
    * G5: Cubic B-spline
    */
   inline void gcode_G5() {
-	  #ifdef OutageTest 
-      WRITE(OUTAGECON_PIN,HIGH);
-      if(sdcardstartprintingflag)
-      {
-        NEW_SERIAL_PROTOCOLPGM("J04");
-        TFT_SERIAL_ENTER();
-      }  
-      if(FlagResumFromOutage)
-      {                
-          OutageRead(); 
-//		  if(MYfeedrate_mm_s==0)MYfeedrate_mm_s=2000;
-          card.setIndex(last_sd_position[0]); 
-                  
-          seekdataflag=1;  
-           ResumingFlag=1;     
-          FlagResumFromOutage=0;   
-         fanSpeeds[0]=Max_ModelCooling;   //OPEN FAN0     
-      //    fanSpeeds[0]=179;   //OPEN FAN0     
-      }     
-      if(1==READ(OUTAGETEST_PIN))
-      {
-         PowerTestFlag=true;
-   //      SERIAL_ECHOLNPGM("G5:PowerTestFlag=TRUE");
-         attachInterrupt(PowerInt,PowerKill,CHANGE);     //INITIANAL SET             
-      } 
-      /*   
+#ifdef VENDOR_CODE
+#ifdef OutageTest
+    WRITE(OUTAGECON_PIN, HIGH);
+    if (sdcardstartprintingflag)
+    {
+      NEW_SERIAL_PROTOCOLPGM("J04");
+      TFT_SERIAL_ENTER();
+    }
+    if (FlagResumFromOutage)
+    {
+      OutageRead();
+      //		  if(MYfeedrate_mm_s==0)MYfeedrate_mm_s=2000;
+      card.setIndex(last_sd_position[0]);
+
+      seekdataflag = 1;
+      ResumingFlag = 1;
+      FlagResumFromOutage = 0;
+      fanSpeeds[0] = Max_ModelCooling; //OPEN FAN0
+      //    fanSpeeds[0]=179;   //OPEN FAN0
+    }
+    if (1 == READ(OUTAGETEST_PIN))
+    {
+      PowerTestFlag = true;
+      //      SERIAL_ECHOLNPGM("G5:PowerTestFlag=TRUE");
+      attachInterrupt(PowerInt, PowerKill, CHANGE); //INITIANAL SET
+    }
+    /*   
       SERIAL_ECHOPAIR("detection", NEW_zprobe_zoffset);
       SERIAL_ECHOPAIR(" MYx",last_position[3]);
     SERIAL_ECHOPAIR(" MYy",last_position[2]);
@@ -3134,9 +3147,8 @@ inline void gcode_G4() {
     SERIAL_ECHOPAIR(" MYe",last_position[0]);
     SERIAL_ECHOPAIR(" SD",last_sd_position[0]);
     */
-       #endif 
-
-	  /*
+#endif //#ifdef OutageTest
+#else //#ifdef VENDOR_CODE
     if (IsRunning()) {
 
       gcode_get_destination();
@@ -3150,7 +3162,7 @@ inline void gcode_G4() {
 
       plan_cubic_move(offset);
     }
-	*/
+	#endif //#ifdef VENDOR_CODE else
   }
 
 //#endif // BEZIER_CURVE_SUPPORT
@@ -3470,7 +3482,6 @@ inline void gcode_G4() {
  *
  */
 
- 
 inline void gcode_G28() {
   #if ENABLED(DEBUG_LEVELING_FEATURE)
     if (DEBUGGING(LEVELING)) {
@@ -3481,10 +3492,17 @@ inline void gcode_G28() {
 
   // Wait for planner moves to finish!
   stepper.synchronize();
+
   // For auto bed leveling, clear the level matrix
+#ifdef VENDOR_CODE  
   #if PLANNER_LEVELING
     set_bed_leveling_enabled(false);
   #endif
+#else // #ifndef VENDOR_CODE
+  #if HAS_ABL
+    reset_bed_level();
+  #endif
+#endif //#ifdef VENDOR_CODE else
 
   // Always home with tool 0 active
   #if HOTENDS > 1
@@ -3592,6 +3610,7 @@ inline void gcode_G28() {
         // Always home the 2nd (right) extruder first
         active_extruder = 1;
         HOMEAXIS(X);
+
         // Remember this extruder's position for later tool change
         inactive_extruder_x_pos = RAW_X_POSITION(current_position[X_AXIS]);
 
@@ -3606,7 +3625,8 @@ inline void gcode_G28() {
 
       #else
 
-        HOMEAXIS(X);      
+        HOMEAXIS(X);
+
       #endif
 
       #if ENABLED(DEBUG_LEVELING_FEATURE)
@@ -3692,6 +3712,7 @@ inline void gcode_G28() {
       }
     }
   #endif
+
   clean_up_after_endstop_or_probe_move();
 
   #if ENABLED(DEBUG_LEVELING_FEATURE)
@@ -3703,27 +3724,27 @@ inline void gcode_G28() {
     tool_change(old_tool_index, 0, true);
   #endif
 
+#ifdef VENDOR_CODE
   #if HAS_ABL
     set_bed_leveling_enabled(true);  // (re)enable bed leveling if the grid is valid
   #endif
+#endif //#ifdef VENDOR_CODE
 
   report_current_position();
-//  if(AssistLeveTestflag) HomeFlag=1;
-  if((Manual_Leveling==0xaa)&&(!card.sdprinting)&&(homeZ||home_all_axis))
+
+#ifdef VENDOR_CODE
+  //  if(AssistLeveTestflag) HomeFlag=1;
+  if ((Manual_Leveling == 0xaa) && (!card.sdprinting) && (homeZ || home_all_axis))
   {
-     do_blocking_move_to(current_position[X_AXIS], current_position[Y_AXIS], 0.001, 2);
-     disable_x();
-  //   disable_y(); 
-     Y_ENABLE_WRITE(!Y_ENABLE_ON); 
-     current_position[Z_AXIS]=0.001; 
-     PointTestFlag=true;  
-   }
+    do_blocking_move_to(current_position[X_AXIS], current_position[Y_AXIS], 0.001, 2);
+    disable_x();
+    //   disable_y();
+    Y_ENABLE_WRITE(!Y_ENABLE_ON);
+    current_position[Z_AXIS] = 0.001;
+    PointTestFlag = true;
+  }
+#endif //#ifdef VENDOR_CODE
 }
-
-
-
-
-
 
 #if HAS_PROBING_PROCEDURE
 
@@ -4279,13 +4300,16 @@ inline void gcode_G28() {
 
       if (!dryrun) extrapolate_unprobed_bed_level();
       print_bed_level();
+
+#ifdef VENDOR_CODE
       SaveAutoBedGridData();
       NEW_SERIAL_PROTOCOLPGM("J25");//  auto leveling DONE
       TFT_SERIAL_ENTER();    
       disable_x();
-      
       disable_y();
-      disable_z();   
+      disable_z();
+#endif //#ifdef VENDOR_CODE
+
       #if ENABLED(ABL_BILINEAR_SUBDIVISION)
         bed_level_virt_prepare();
         bed_level_virt_interpolate();
@@ -5450,11 +5474,15 @@ inline void gcode_M105() {
    *  P<index> Fan index, if more than one fan
    */
   inline void gcode_M106() {
-  //  uint16_t s = code_seen('S') ? code_value_ushort() : 255,
-      uint16_t s = code_seen('S') ? code_value_ushort() : 179,
+#ifdef VENDOR_CODE
+    uint16_t s = code_seen('S') ? code_value_ushort() : 179,
              p = code_seen('P') ? code_value_ushort() : 0;
     NOMORE(s, Max_ModelCooling);
- //   NOMORE(s, 179);
+#else  //#ifndef VENDOR_CODE
+    uint16_t s = code_seen('S') ? code_value_ushort() : 255,
+             p = code_seen('P') ? code_value_ushort() : 0;
+    NOMORE(s, 255);
+#endif //#ifdef VENDOR_CODE else
     if (p < FAN_COUNT) fanSpeeds[p] = s;
   }
 
@@ -5594,7 +5622,9 @@ inline void gcode_M109() {
     }
 
     idle();
+#ifdef VENDOR_CODE
  //   TFT_Commond_Scan();
+#endif //#ifdef VENDOR_CODE
     refresh_cmd_timeout(); // to prevent stepper_inactive_time from running out
 
     float temp = thermalManager.degHotend(target_extruder);
@@ -5762,12 +5792,18 @@ inline void gcode_M109() {
 
     } while (wait_for_heatup && TEMP_BED_CONDITIONS);
 
-    if (wait_for_heatup){      
+#ifdef VENDOR_CODE
+    if (wait_for_heatup)
+    {
       #ifdef TFTmodel
-      NEW_SERIAL_PROTOCOLPGM("J09");//hotbed heating
+      NEW_SERIAL_PROTOCOLPGM("J09"); //hotbed heating
       TFT_SERIAL_ENTER();
       #endif
-      LCD_MESSAGEPGM(MSG_BED_DONE);}
+      LCD_MESSAGEPGM(MSG_BED_DONE);
+    }
+#else  //#ifndef VENDOR_CODE
+    if (wait_for_heatup) LCD_MESSAGEPGM(MSG_BED_DONE);
+#endif //#ifdef VENDOR_CODE else
     KEEPALIVE_STATE(IN_HANDLER);
     
   }
@@ -5975,8 +6011,11 @@ inline void gcode_M81() {
       powersupply = false;
     #endif
     LCD_MESSAGEPGM(MACHINE_NAME " " MSG_OFF ".");
-//    lcd_update();
+#ifdef VENDOR_CODE
     TFT_Commond_Scan();
+#else //#ifndef VENDOR_CODE
+    lcd_update();
+#endif //#ifdef VENDOR_CODE else
   #endif
 }
 
@@ -6098,7 +6137,7 @@ inline void gcode_M114() { report_current_position(); }
  * M115: Capabilities string
  */
 inline void gcode_M115() {
-  /*
+#ifndef VENDOR_CODE
   SERIAL_PROTOCOLLNPGM(MSG_M115_REPORT);
 
   #if ENABLED(EXTENDED_CAPABILITIES_REPORT)
@@ -6156,7 +6195,7 @@ inline void gcode_M115() {
     #endif
 
   #endif // EXTENDED_CAPABILITIES_REPORT
-  */
+#endif //#ifndef VENDOR_CODE
 }
 
 /**
@@ -6724,6 +6763,7 @@ inline void gcode_M226() {
    * M300: Play beep sound S<frequency Hz> P<duration ms>
    */
   inline void gcode_M300() {
+#ifdef VENDOR_CODE
       int beepS = code_seen('S') ? code_value_int() : 110;
       int beepP = code_seen('P') ? code_value_int() : 1000;
       if (beepS > 0)
@@ -6742,8 +6782,7 @@ inline void gcode_M226() {
       {
         delay(beepP);
       }
-    
-  /*  
+#else //#ifndef VENDOR_CODE
     uint16_t const frequency = code_seen('S') ? code_value_int() : 260;
     uint16_t duration = code_seen('P') ? code_value_int() : 1000;
 
@@ -6751,7 +6790,7 @@ inline void gcode_M226() {
     NOMORE(duration, 5000);
 
     BUZZ(duration, frequency);
-   */ 
+#endif //#ifdef VENDOR_CODE else
   }
 
 #endif // HAS_BUZZER
@@ -7276,12 +7315,16 @@ inline void gcode_M503() {
     if (code_seen('Z')) {
       float value = code_value_axis_units(Z_AXIS);
       if (Z_PROBE_OFFSET_RANGE_MIN <= value && value <= Z_PROBE_OFFSET_RANGE_MAX) {
+#ifdef VENDOR_CODE
           float height_difference =(value-zprobe_zoffset);
         for (uint8_t x = 0; x < ABL_GRID_POINTS_X; x++)
              for (uint8_t y = 0; y < ABL_GRID_POINTS_Y; y++)
                bed_level_grid[x][y] += height_difference;
         zprobe_zoffset = value;
-        SaveAutoBedGridData();   
+        SaveAutoBedGridData();
+#else //#ifndef VENDOR_CODE
+        zprobe_zoffset = value;
+#endif //#ifdef VENDOR_CODE else
         SERIAL_ECHO(zprobe_zoffset);
       }
       else {
@@ -8182,10 +8225,19 @@ void process_next_command() {
         gcode_G4();
         break;
 
+#ifdef VENDOR_CODE
         // G5
         case 5: // G5  - Cubic B_spline
           gcode_G5();
           break;
+#else //#ifndef VENDOR_CODE
+      #if ENABLED(BEZIER_CURVE_SUPPORT)
+        // G5
+        case 5: // G5  - Cubic B_spline
+          gcode_G5();
+          break;
+      #endif // BEZIER_CURVE_SUPPORT
+#endif //#ifdef VENDOR_CODE else
 
       #if ENABLED(FWRETRACT)
         case 10: // G10: retract
@@ -8316,7 +8368,11 @@ void process_next_command() {
         gcode_M31(); break;
 
       case 42: // M42: Change pin state
-      //  gcode_M42(); break;
+#ifndef VENDOR_CODE
+        gcode_M42(); break;
+#else //#ifndef VENDOR_CODE
+        break;
+#endif //#ifdef VENDOR_CODE else
 
       #if ENABLED(PINS_DEBUGGING)
         case 43: // M43: Read pin state
@@ -8804,52 +8860,60 @@ void process_next_command() {
           break;
 
       #endif // HAS_CASE_LIGHT
+#ifndef VENDOR_CODE
+      case 999: // M999: Restart after being Stopped
+        gcode_M999();
+        break;
+#else //#ifdef VENDOR_CODE
 #ifdef AUTO_BED_LEVELING_BILINEAR
       case 999: // M999: Restart after being Stopped
         gcode_M999();
         break;
-      case 1000:{                   //RESET AUTOBED DATE
-                  float temp;
-                  if(code_seen('S')) temp=code_value_float();
-                  else temp=-3.5;
-                  for (uint8_t x = 0; x < ABL_GRID_POINTS_X; x++)
-                  {
-                   for (uint8_t y = 0; y < ABL_GRID_POINTS_Y; y++)
-                     bed_level_grid[x][y] =temp; 
-                  };
-                  bilinear_grid_spacing[0]=int((RIGHT_PROBE_BED_POSITION-LEFT_PROBE_BED_POSITION)/(ABL_GRID_POINTS_X-1));
-                  bilinear_grid_spacing[1]=int((BACK_PROBE_BED_POSITION-FRONT_PROBE_BED_POSITION)/(ABL_GRID_POINTS_Y-1));
-                  bilinear_start[0]=LEFT_PROBE_BED_POSITION;
-                  bilinear_start[1]=FRONT_PROBE_BED_POSITION;
-                  zprobe_zoffset = Z_PROBE_OFFSET_FROM_EXTRUDER;
-                  NEW_zprobe_zoffset=Z_PROBE_OFFSET_FROM_EXTRUDER;
-                  Manual_Leveling=0xaa;
-                  SaveWay2Leveling();
-                  SaveAutoBedGridData();
-                  SERIAL_ECHOPGM("Done, Manual Leveling was actived!");
+      case 1000:
+      { //RESET AUTOBED DATE
+        float temp;
+        if (code_seen('S'))
+          temp = code_value_float();
+        else
+          temp = -3.5;
+        for (uint8_t x = 0; x < ABL_GRID_POINTS_X; x++)
+        {
+          for (uint8_t y = 0; y < ABL_GRID_POINTS_Y; y++)
+            bed_level_grid[x][y] = temp;
+        };
+        bilinear_grid_spacing[0] = int((RIGHT_PROBE_BED_POSITION - LEFT_PROBE_BED_POSITION) / (ABL_GRID_POINTS_X - 1));
+        bilinear_grid_spacing[1] = int((BACK_PROBE_BED_POSITION - FRONT_PROBE_BED_POSITION) / (ABL_GRID_POINTS_Y - 1));
+        bilinear_start[0] = LEFT_PROBE_BED_POSITION;
+        bilinear_start[1] = FRONT_PROBE_BED_POSITION;
+        zprobe_zoffset = Z_PROBE_OFFSET_FROM_EXTRUDER;
+        NEW_zprobe_zoffset = Z_PROBE_OFFSET_FROM_EXTRUDER;
+        Manual_Leveling = 0xaa;
+        SaveWay2Leveling();
+        SaveAutoBedGridData();
+        SERIAL_ECHOPGM("Done, Manual Leveling was actived!");
       }
       break;
-      
       case 1001:
       {
-                 for (uint8_t x = 0; x < ABL_GRID_POINTS_X; x++)
-                  {
-                   for (uint8_t y = 0; y < ABL_GRID_POINTS_Y; y++)
-                     bed_level_grid[x][y] =-0.1; 
-                  };
-                bilinear_grid_spacing[0]=int((RIGHT_PROBE_BED_POSITION-LEFT_PROBE_BED_POSITION)/(ABL_GRID_POINTS_X-1));
-                bilinear_grid_spacing[1]=int((BACK_PROBE_BED_POSITION-FRONT_PROBE_BED_POSITION)/(ABL_GRID_POINTS_Y-1));
-                bilinear_start[0]=LEFT_PROBE_BED_POSITION;
-                bilinear_start[1]=FRONT_PROBE_BED_POSITION;
-                zprobe_zoffset = Z_PROBE_OFFSET_FROM_EXTRUDER;
-                NEW_zprobe_zoffset=Z_PROBE_OFFSET_FROM_EXTRUDER;
-                Manual_Leveling=0x55;
-                SaveWay2Leveling();
-                SaveAutoBedGridData();  
-                SERIAL_ECHOPGM("Done, Auto Leveling was actived!");              
-       }
+        for (uint8_t x = 0; x < ABL_GRID_POINTS_X; x++)
+        {
+          for (uint8_t y = 0; y < ABL_GRID_POINTS_Y; y++)
+            bed_level_grid[x][y] = -0.1;
+        };
+        bilinear_grid_spacing[0] = int((RIGHT_PROBE_BED_POSITION - LEFT_PROBE_BED_POSITION) / (ABL_GRID_POINTS_X - 1));
+        bilinear_grid_spacing[1] = int((BACK_PROBE_BED_POSITION - FRONT_PROBE_BED_POSITION) / (ABL_GRID_POINTS_Y - 1));
+        bilinear_start[0] = LEFT_PROBE_BED_POSITION;
+        bilinear_start[1] = FRONT_PROBE_BED_POSITION;
+        zprobe_zoffset = Z_PROBE_OFFSET_FROM_EXTRUDER;
+        NEW_zprobe_zoffset = Z_PROBE_OFFSET_FROM_EXTRUDER;
+        Manual_Leveling = 0x55;
+        SaveWay2Leveling();
+        SaveAutoBedGridData();
+        SERIAL_ECHOPGM("Done, Auto Leveling was actived!");
+      }
       break;
-   #endif   
+   #endif 
+#endif //#ifndef VENDOR_CODE else  
     }
     break;
 
@@ -10105,10 +10169,11 @@ void disable_all_steppers() {
  *  - Check if an idle but hot extruder needs filament extruded (EXTRUDER_RUNOUT_PREVENT)
  */
 void manage_inactivity(bool ignore_stepper_queue/*=false*/) {
-  
+
+#ifdef VENDOR_CODE
   FilamentScan();
   Fan2Scan();
-  
+#endif //#ifdef VENDOR_CODE
 
   #if ENABLED(FILAMENT_RUNOUT_SENSOR)
     if ((IS_SD_PRINTING || print_job_timer.isRunning()) && (READ(FIL_RUNOUT_PIN) == FIL_RUNOUT_INVERTING))
@@ -10121,8 +10186,13 @@ void manage_inactivity(bool ignore_stepper_queue/*=false*/) {
 
   if (max_inactive_time && ELAPSED(ms, previous_cmd_ms + max_inactive_time)) kill(PSTR(MSG_KILLED));
 
+#ifdef VENDOR_CODE
   if (stepper_inactive_time && ELAPSED(ms, previous_cmd_ms + stepper_inactive_time)
       && !ignore_stepper_queue && !planner.blocks_queued()&&!TFTresumingflag&&!PointTestFlag) {
+#else //#ifndef VENDOR_CODE
+  if (stepper_inactive_time && ELAPSED(ms, previous_cmd_ms + stepper_inactive_time)
+      && !ignore_stepper_queue && !planner.blocks_queued()) {
+#endif //#ifdef VENDOR_CODE else
     #if ENABLED(DISABLE_INACTIVE_X)
       disable_x();
     #endif
@@ -10279,7 +10349,9 @@ void manage_inactivity(bool ignore_stepper_queue/*=false*/) {
   #if ENABLED(TEMP_STAT_LEDS)
     handle_status_leds();
   #endif
+#ifdef VENDOR_CODE
   if(!TFTresumingflag&&!PointTestFlag)
+#endif //#ifdef VENDOR_CODE
   planner.check_axes_activity();
 }
 
@@ -10291,13 +10363,20 @@ void idle(
     bool no_stepper_sleep/*=false*/
   #endif
 ) {
+#ifdef VENDOR_CODE
   TFT_Commond_Scan();
-//  lcd_update();
-static unsigned int counter=0;
-counter++;
-if(counter%1000==0){counter=0;  SDCARD_UPDATA();}
-//  Endstopsbeep();
-//  host_keepalive();
+  static unsigned int counter = 0;
+  counter++;
+  if (counter % 1000 == 0)
+  {
+    counter = 0;
+    SDCARD_UPDATA();
+  }
+#else //#ifndef VENDOR_CODE
+  lcd_update();
+
+  host_keepalive();
+#endif //#ifdef VENDOR_CODE else
 
   #if ENABLED(AUTO_REPORT_TEMPERATURES) && (HAS_TEMP_HOTEND || HAS_TEMP_BED)
     auto_report_temperatures();
@@ -10336,7 +10415,9 @@ void kill(const char* lcd_msg) {
 
   delay(500); // Wait a short time
 
- // cli(); // Stop interrupts
+#ifndef VENDOR_CODE
+  cli(); // Stop interrupts
+#endif //#ifdef VENDOR_CODE
   thermalManager.disable_all_heaters();
   disable_all_steppers();
 
@@ -10346,8 +10427,10 @@ void kill(const char* lcd_msg) {
 
   suicide();
   while (1) {
+#ifdef VENDOR_CODE
     errorFlag=6;
     TFT_Commond_Scan();
+#endif //#ifdef VENDOR_CODE
     #if ENABLED(USE_WATCHDOG)
       watchdog_reset();
     #endif
@@ -10411,16 +10494,18 @@ void setup() {
   SERIAL_PROTOCOLLNPGM("start");
   SERIAL_ECHO_START;
 
+#ifdef VENDOR_CODE
   #ifdef TFTmodel  
-NewSerial.begin(115200);
-//TFT_SERIAL_START();
-TFT_SERIAL_ENTER();
-NEW_SERIAL_PROTOCOLPGM("J17"); //j17 main board reset
-TFT_SERIAL_ENTER();
-delay(10);
-NEW_SERIAL_PROTOCOLPGM("J12"); //  READY
-TFT_SERIAL_ENTER();
-
+  NewSerial.begin(115200);
+  //TFT_SERIAL_START();
+  TFT_SERIAL_ENTER();
+  NEW_SERIAL_PROTOCOLPGM("J17"); //j17 main board reset
+  TFT_SERIAL_ENTER();
+  delay(10);
+  NEW_SERIAL_PROTOCOLPGM("J12"); //  READY
+  TFT_SERIAL_ENTER();
+  #endif
+#endif //#ifdef VENDOR_CODE
 
   // Check startup - does nothing if bootloader sets MCUSR to 0
   byte mcu = MCUSR;
@@ -10431,12 +10516,14 @@ TFT_SERIAL_ENTER();
   if (mcu & 32) SERIAL_ECHOLNPGM(MSG_SOFTWARE_RESET);
   MCUSR = 0;
 
+#ifdef VENDOR_CODE
   SERIAL_ECHOLNPGM(MSG_MY_VERSION);
+#else //#ifndef VENDOR_CODE
+  SERIAL_ECHOPGM(MSG_MARLIN);
+#endif //#ifdef VENDOR_CODE else
   SERIAL_CHAR(' ');
   SERIAL_ECHOLNPGM(SHORT_BUILD_VERSION);
   SERIAL_EOL;
-
-  
 
   #if defined(STRING_DISTRIBUTION_DATE) && defined(STRING_CONFIG_H_AUTHOR)
     SERIAL_ECHO_START;
@@ -10450,8 +10537,6 @@ TFT_SERIAL_ENTER();
   SERIAL_ECHOPAIR(MSG_FREE_MEMORY, freeMemory());
   SERIAL_ECHOLNPAIR(MSG_PLANNER_BUFFER_BYTES, (int)sizeof(block_t)*BLOCK_BUFFER_SIZE);
 
-
-  
   // Send "ok" after commands by default
   for (int8_t i = 0; i < BUFSIZE; i++) send_ok[i] = true;
 
@@ -10459,13 +10544,16 @@ TFT_SERIAL_ENTER();
   // This also updates variables in the planner, elsewhere
   Config_RetrieveSettings();
 
+#ifdef VENDOR_CODE
+  #ifdef TFTmodel
   #ifdef AUTO_BED_LEVELING_BILINEAR
-setupMyZoffset();
-delay(10);
-ReadAutoBedGridData();
-#endif
-setup_OutageTestPin();
-#endif
+  setupMyZoffset();
+  delay(10);
+  ReadAutoBedGridData();
+  #endif //#ifdef AUTO_BED_LEVELING_BILINEAR
+  setup_OutageTestPin();
+  #endif //#ifdef TFTmodel
+#endif //#ifdef VENDOR_CODE
 
   // Initialize current position based on home_offset
   memcpy(current_position, home_offset, sizeof(home_offset));
@@ -10480,7 +10568,9 @@ setup_OutageTestPin();
   #endif
 
   stepper.init();    // Initialize stepper, this enables interrupts!
-//  servo_init();
+#ifndef VENDOR_CODE
+  servo_init();
+#endif //#ifdef VENDOR_CODE
  
   #if HAS_PHOTOGRAPH
     OUT_WRITE(PHOTOGRAPH_PIN, LOW);
@@ -10529,9 +10619,14 @@ setup_OutageTestPin();
     pinMode(RGB_LED_G_PIN, OUTPUT);
     pinMode(RGB_LED_B_PIN, OUTPUT);
   #endif
+
+#ifdef VENDOR_CODE
   _delay_ms(20);
- PowerOnMusic(); 
-//  lcd_init();
+  PowerOnMusic(); 
+#else //#ifndef VENDOR_CODE
+  lcd_init();
+#endif //#ifdef VENDOR_CODE else
+
   #if ENABLED(SHOW_BOOTSCREEN)
     #if ENABLED(DOGLCD)
       safe_delay(BOOTSCREEN_TIMEOUT);
@@ -10561,12 +10656,13 @@ setup_OutageTestPin();
     setup_endstop_interrupts();
   #endif
 
+#ifdef VENDOR_CODE
   SetUpFAN2_PIN();
 //  setuplevelTest();
   setupSDCARD(); 
   SetupFilament();
    _delay_ms(10);  // wait 1sec to display the splash screen 
- 
+#endif //#ifdef VENDOR_CODE
 }
 
 /**
@@ -10580,10 +10676,12 @@ setup_OutageTestPin();
  *  - Call LCD update
  */
 void loop() {
-  
+
+#ifdef VENDOR_CODE
   if(pauseCMDsendflag)pauseCMDsend();//when pause,i need rase z axis,but if i use enquecommand_P,it maybe lose cmd,very dangerous,so i need sent cmd one by one
 //  if(PointTestFlag||Z_offset_debug_flag)MY_AUTOlevelAlarm();
-  
+#endif //#ifdef VENDOR_CODE
+
   if (commands_in_queue < BUFSIZE) get_available_commands();
 
   #if ENABLED(SDSUPPORT)
@@ -10626,17 +10724,21 @@ void loop() {
       cmd_queue_index_r = (cmd_queue_index_r + 1) % BUFSIZE;
     }
   }
-//  endstops.report_state();
+#ifdef VENDOR_CODE
   idle();
   #ifdef TFTmodel
   USBOnLineTest();
-//  if((AssistLeveTestflag==1)&&(commands_in_queue < BUFSIZE)){ AssistLevelTest();}
-  if(TFTpausingFlag) //when pause sd printing,send "ok"to tft as read buffer carry out
+  //  if((AssistLeveTestflag==1)&&(commands_in_queue < BUFSIZE)){ AssistLevelTest();}
+  if (TFTpausingFlag) //when pause sd printing,send "ok"to tft as read buffer carry out
   {
     stepper.synchronize();
-    TFTpausingFlag=false;
-    NEW_SERIAL_PROTOCOLPGM("J18");// pausing done
+    TFTpausingFlag = false;
+    NEW_SERIAL_PROTOCOLPGM("J18"); // pausing done
     TFT_SERIAL_ENTER();
-  } 
+  }
   #endif
+#else //#ifndef VENDOR_CODE
+  endstops.report_state();
+  idle();
+#endif //#ifdef VENDOR_CODE else
 }

@@ -374,9 +374,11 @@ uint8_t lcdDrawUpdate = LCDVIEW_CLEAR_CALL_REDRAW; // Set when the LCD needs to 
   millis_t next_button_update_ms;
   uint8_t lastEncoderBits;
   uint32_t encoderPosition;
- // #if PIN_EXISTS(SD_DETECT)
-//    uint8_t lcd_sd_status;
-//  #endif
+#ifndef VENDOR_CODE
+  #if PIN_EXISTS(SD_DETECT)
+    uint8_t lcd_sd_status;
+  #endif
+#endif //#ifndef VENDOR_CODE
 
   typedef struct {
     screenFunc_t menu_function;
@@ -828,7 +830,11 @@ void kill_screen(const char* lcd_msg) {
         #else
           #define MSG_1ST_FAN_SPEED MSG_FAN_SPEED
         #endif
+#ifdef VENDOR_CODE
         MENU_MULTIPLIER_ITEM_EDIT(int3, MSG_1ST_FAN_SPEED, &fanSpeeds[0], 0, Max_ModelCooling);
+#else //#ifndef VENDOR_CODE
+        MENU_MULTIPLIER_ITEM_EDIT(int3, MSG_1ST_FAN_SPEED, &fanSpeeds[0], 0, 255);
+#endif //#ifdef VENDOR_CODE
       #endif
       #if HAS_FAN1
         MENU_MULTIPLIER_ITEM_EDIT(int3, MSG_FAN_SPEED " 2", &fanSpeeds[1], 0, 255);
@@ -925,7 +931,11 @@ void kill_screen(const char* lcd_msg) {
       #if FAN_COUNT > 1
         fanSpeeds[active_extruder < FAN_COUNT ? active_extruder : 0] = fan;
       #else
+#ifdef VENDOR_CODE
        if(fan>=Max_ModelCooling){ fanSpeeds[0]=Max_ModelCooling;}else fanSpeeds[0] = fan;
+#else //#ifndef VENDOR_CODE
+        fanSpeeds[0] = fan;
+#endif//#ifdef VENDOR_CODE
       #endif
     #else
       UNUSED(fan);
@@ -2714,7 +2724,7 @@ bool lcd_blink() {
  */
 #ifndef VENDOR_CODE
 void lcd_update() {
- 
+
   #if ENABLED(ULTIPANEL)
     static millis_t return_to_status_ms = 0;
     manage_manual_move();
@@ -2746,6 +2756,7 @@ void lcd_update() {
         card.release();
         if (lcd_sd_status != 2) LCD_MESSAGEPGM(MSG_SD_REMOVED);
       }
+
       lcd_sd_status = sd_status;
       lcdDrawUpdate = LCDVIEW_CLEAR_CALL_REDRAW;
       lcd_implementation_init( // to maybe revive the LCD if static electricity killed it.
@@ -2756,6 +2767,7 @@ void lcd_update() {
     }
 
   #endif //SDSUPPORT && SD_DETECT_PIN
+
   millis_t ms = millis();
   if (ELAPSED(ms, next_lcd_update_ms)) {
 
