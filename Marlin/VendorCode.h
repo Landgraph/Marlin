@@ -31,21 +31,21 @@
 /******************************************************************/
 
 #define NEW_SERIAL_PROTOCOL(x) (NewSerial.print(x))
-#define NEW_SERIAL_PROTOCOL_F(x,y) (NewSerial.print(x,y))
+#define NEW_SERIAL_PROTOCOL_F(x, y) (NewSerial.print(x, y))
 #define NEW_SERIAL_PROTOCOLPGM(x) (NewSerialprintPGM(PSTR(x)))
-#define NEW_SERIAL_(x) (NewSerial.print(x),NewSerial.write('\n'))
-#define NEW_SERIAL_PROTOCOLLN(x) (NewSerial.print(x),NewSerial.write('\r'),NewSerial.write('\n'))
-#define NEW_SERIAL_PROTOCOLLNPGM(x) (NewSerialprintPGM(PSTR(x)),NewSerial.write('\n'))
+#define NEW_SERIAL_(x) (NewSerial.print(x), NewSerial.write('\n'))
+#define NEW_SERIAL_PROTOCOLLN(x) (NewSerial.print(x), NewSerial.write('\r'), NewSerial.write('\n'))
+#define NEW_SERIAL_PROTOCOLLNPGM(x) (NewSerialprintPGM(PSTR(x)), NewSerial.write('\n'))
 
-#define TFT_SERIAL_START() (NewSerial.write('\r'),NewSerial.write('\n'))
-#define TFT_SERIAL_CMD_SEND(x) (NewSerialprintPGM(PSTR(x)),NewSerial.write('\r'),NewSerial.write('\n'))
-#define TFT_SERIAL_ENTER() (NewSerial.write('\r'),NewSerial.write('\n'))
+#define TFT_SERIAL_START() (NewSerial.write('\r'), NewSerial.write('\n'))
+#define TFT_SERIAL_CMD_SEND(x) (NewSerialprintPGM(PSTR(x)), NewSerial.write('\r'), NewSerial.write('\n'))
+#define TFT_SERIAL_ENTER() (NewSerial.write('\r'), NewSerial.write('\n'))
 #define TFT_SERIAL_SPACE() (NewSerial.write(' '))
 
-const char newErr[] PROGMEM ="ERR ";
-const char newSucc[] PROGMEM ="OK";
+const char newErr[] PROGMEM = "ERR ";
+const char newSucc[] PROGMEM = "OK";
 #define NEW_SERIAL_ERROR_START (NewSerialprintPGM(newErr))
-  #define NEW_SERIAL_ERROR(x) NEW_SERIAL_PROTOCOL(x)
+#define NEW_SERIAL_ERROR(x) NEW_SERIAL_PROTOCOL(x)
 #define NEW_SERIAL_ERRORPGM(x) NEW_SERIAL_PROTOCOLPGM(x)
 #define NEW_SERIAL_ERRORLN(x) NEW_SERIAL_PROTOCOLLN(x)
 #define NEW_SERIAL_ERRORLNPGM(x) NEW_SERIAL_PROTOCOLLNPGM(x)
@@ -53,17 +53,17 @@ const char newSucc[] PROGMEM ="OK";
 //##define NEW_SERIAL_ECHO_START (NewSerialprintPGM(newSucc))
 #define NEW_SERIAL_ECHOLN(x) NEW_SERIAL_PROTOCOLLN(x)
 #define NEW_SERIAL_SUCC_START (NewSerialprintPGM(newSucc))
-#define NEW_SERIAL_ECHOPAIR(name,value) (serial_echopair_P(PSTR(name),(value)))
+#define NEW_SERIAL_ECHOPAIR(name, value) (serial_echopair_P(PSTR(name), (value)))
 #define NEW_SERIAL_ECHOPGM(x) NEW_SERIAL_PROTOCOLPGM(x)
 #define NEW_SERIAL_ECHO(x) NEW_SERIAL_PROTOCOL(x)
 
 FORCE_INLINE void NewSerialprintPGM(const char *str)
 {
-  char ch=pgm_read_byte(str);
-  while(ch)
+  char ch = pgm_read_byte(str);
+  while (ch)
   {
     NewSerial.write(ch);
-    ch=pgm_read_byte(++str);
+    ch = pgm_read_byte(++str);
   }
 }
 void NEWFlushSerialRequestResend();
@@ -87,17 +87,17 @@ extern unsigned char PowerTestFlag;
 //unsigned char ResumingFlag=0;
 #endif
 #if PIN_EXISTS(SD_DETECT)
-  extern uint8_t lcd_sd_status;
+extern uint8_t lcd_sd_status;
 #endif
-#if HAS_BED_PROBE 
-  extern float NEW_zprobe_zoffset;
+#if HAS_BED_PROBE
+extern float NEW_zprobe_zoffset;
 #endif
 #if ENABLED(AUTO_BED_LEVELING_BILINEAR)
 extern void setupMyZoffset();
 #endif
 
-extern char* itostr3(const int& x);
-extern char* itostr2(const uint8_t& x);
+extern char *itostr3(const int &x);
+extern char *itostr2(const uint8_t &x);
 extern void PowerKill();
 extern void FilamentScan();
 extern void Fan2Scan();
@@ -116,35 +116,34 @@ extern void pauseCMDsend();
 /******************************************************************/
 
 #if ENABLED(EEPROM_SETTINGS)
-    void SaveAutoBedGridData();
-    void ReadAutoBedGridData();
+void SaveAutoBedGridData();
+void ReadAutoBedGridData();
 
-    #ifdef OutageTest
-    static bool RestartFlag=false;
-    void OutageSave();
-    void OutageRead();
-    extern float last_position[4];
-    extern long last_sd_position[1];
-    #endif
-    //void SaveMyZoffset();
-    //void ReadMyZoffset();
-    extern float Current_z_offset;
-    //extern float last_z_offset[1];
-    extern float last_z_offset;
-    extern unsigned char FirstBootFlag;
-    void SaveFirstBootFlag();
-    void readFirstBootFlag();
+#ifdef OutageTest
+static bool RestartFlag = false;
+void OutageSave();
+void OutageRead();
+extern float last_position[4];
+extern long last_sd_position[1];
+#endif
+//void SaveMyZoffset();
+//void ReadMyZoffset();
+extern float Current_z_offset;
+//extern float last_z_offset[1];
+extern float last_z_offset;
+extern unsigned char FirstBootFlag;
+void SaveFirstBootFlag();
+void readFirstBootFlag();
 
-    extern float Current_z_offset;
-    //extern float last_z_offset[1];
+extern float Current_z_offset;
+//extern float last_z_offset[1];
 
-
-    void SaveWay2Leveling();
-    void ReadWay2Leveling();
-    extern unsigned char Manual_Leveling;
-    extern unsigned char FirstBootFlag;
-    void SaveFirstBootFlag();
-    void readFirstBootFlag();
+void SaveWay2Leveling();
+void ReadWay2Leveling();
+extern unsigned char Manual_Leveling;
+extern unsigned char FirstBootFlag;
+void SaveFirstBootFlag();
+void readFirstBootFlag();
 #endif //ENABLED(EEPROM_SETTINGS)
 
 #endif //VENDORCODE_H
