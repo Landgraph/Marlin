@@ -70,6 +70,7 @@ void NEWFlushSerialRequestResend();
 void NEWClearToSend();
 
 extern char TFTpausingFlag;
+extern char TFTresumingflag;
 extern char PointTestFlag;
 extern char errorFlag;
 extern char FlagResumFromOutage;
@@ -78,17 +79,15 @@ extern char sdcardstartprintingflag;
 extern char seekdataflag;
 extern bool UsbOnLineFlag;
 extern bool USBConnectFlag;
-
-extern const unsigned int Max_ModelCooling;
-
 #if defined(OutageTest)
 extern int PowerInt;
 extern unsigned char PowerTestFlag;
-//unsigned char ResumingFlag=0;
 #endif
 #if PIN_EXISTS(SD_DETECT)
 extern uint8_t lcd_sd_status;
 #endif
+
+extern const unsigned int Max_ModelCooling;
 #if HAS_BED_PROBE
 extern float NEW_zprobe_zoffset;
 #endif
@@ -111,6 +110,18 @@ extern void USBOnLineTest();
 extern void SDCARD_UPDATA();
 extern void pauseCMDsend();
 
+
+#if ENABLED(SDSUPPORT)
+#if defined(OutageTest)
+extern unsigned char PowerTestFlag;
+extern char seekdataflag;
+#endif
+extern char TFTStatusFlag;
+extern char sdcardstartprintingflag; 
+extern uint16_t filenumber;
+extern bool pauseCMDsendflag;
+#endif
+
 /******************************************************************/
 /*                      configuration_store                       */
 /******************************************************************/
@@ -120,23 +131,19 @@ void SaveAutoBedGridData();
 void ReadAutoBedGridData();
 
 #ifdef OutageTest
-static bool RestartFlag = false;
+extern bool RestartFlag;
 void OutageSave();
 void OutageRead();
 extern float last_position[4];
 extern long last_sd_position[1];
 #endif
-//void SaveMyZoffset();
-//void ReadMyZoffset();
 extern float Current_z_offset;
-//extern float last_z_offset[1];
 extern float last_z_offset;
 extern unsigned char FirstBootFlag;
 void SaveFirstBootFlag();
 void readFirstBootFlag();
 
 extern float Current_z_offset;
-//extern float last_z_offset[1];
 
 void SaveWay2Leveling();
 void ReadWay2Leveling();

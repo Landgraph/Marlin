@@ -30,17 +30,6 @@
 
 #if ENABLED(SDSUPPORT)
 
-char TFTresumingflag=0;
-#if defined(OutageTest)
-extern unsigned char PowerTestFlag;
-extern char seekdataflag;
-#endif
-extern char TFTStatusFlag;
-extern char sdcardstartprintingflag; 
-extern int16_t filenumber;
-
-
-
 CardReader::CardReader() {
   sdprinting = cardOK = saving = logging = false;
   filesize = 0;
@@ -60,18 +49,6 @@ CardReader::CardReader() {
   next_autostart_ms = millis() + 5000;
 }
 
-void CardReader::Myls() 
-{
-  lsAction=MySerial3Print;
-  root.rewind();
-  lsDive("",root);
-}
-
-uint16_t MyFileNrCnt=0;
-extern bool ReadMyfileNrFlag;
-uint16_t fileoutputcnt=0;
-
-
 char *createFilename(char *buffer, const dir_t &p) { //buffer > 12characters
   char *pos = buffer;
   for (uint8_t i = 0; i < 11; i++) {
@@ -89,6 +66,7 @@ char *createFilename(char *buffer, const dir_t &p) { //buffer > 12characters
  *   LS_GetFilename - Get the filename of the file indexed by nrFiles
  *   LS_SerialPrint - Print the full path of each file to serial output
  */
+#ifndef VENDOR_CODE
 void  CardReader::lsDive(const char *prepend,SdFile parent, const char * const match/*=NULL*/)
 {
   dir_t p;
@@ -215,14 +193,7 @@ void  CardReader::lsDive(const char *prepend,SdFile parent, const char * const m
     }
   }
 }
-
-
-
-
-
-
-
-
+#endif // #ifndef VENDOR_CODE
 
 void CardReader::ls()  {
   lsAction = LS_SerialPrint;
@@ -353,59 +324,16 @@ void CardReader::openAndPrintFile(const char *name) {
   enqueue_and_echo_commands_P(PSTR("M24"));
 }
 
+#ifndef VENDOR_CODE
 void CardReader::startFileprint() {
-  if(cardOK)
-  {
-  sdprinting = true;
-  if(TFTresumingflag)
-    {   
-//      enquecommand_P(PSTR("G91"));  
-      enqueue_and_echo_commands_P(PSTR("G1 Z-20"));
-      enqueue_and_echo_commands_P(PSTR("G90"));   
-      TFTresumingflag=false;
-    }        
-  }
+  if(cardOK) sdprinting = true;
 }
+#endif // #ifndef VENDOR_CODE
 
 void CardReader::stopSDPrint() {
   sdprinting = false;
   if (isFileOpen()) file.close();
 }
-
-
-
-void CardReader::TFTStopPringing()
-{
-  sdprinting = false;
-  TFTresumingflag=false;
-  sdcardstartprintingflag=false;
-  closefile();
-  quickstop_stepper();     
-  NEW_SERIAL_PROTOCOLPGM("J16");//STOP
-  TFT_SERIAL_ENTER();  
-//  autotempShutdown();
-  disable_x();
-  disable_y();
-  disable_z();
-  disable_e0();  
-}
-void CardReader::TFTgetStatus()
-{
-//  if(TFTStatusFlag)
-//  {
-    if(cardOK)
-      {
-        NEW_SERIAL_PROTOCOL(itostr3(percentDone()));
-      }
-      else{
-        NEW_SERIAL_PROTOCOLPGM("J02");
-//        TFT_SERIAL_ENTER();
-      }
-//    TFTStatusFlag=0;
-//  }
-}
-
-
 
 void CardReader::openLogFile(char* name) {
   logging = true;

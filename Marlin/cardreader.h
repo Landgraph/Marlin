@@ -25,12 +25,6 @@
 
 #include "MarlinConfig.h"
 
-
-extern char TFTresumingflag;
-extern bool pauseCMDsendflag;
-
-
-
 #if ENABLED(SDSUPPORT)
 
 #define MAX_DIR_DEPTH 10          // Maximum folder depth
@@ -61,10 +55,12 @@ public:
   void getStatus();
   void printingHasFinished();
 
-  
+  #ifdef VENDOR_CODE
   void TFTStopPringing(); 
   void TFTgetStatus();
   void Myls(); 
+  FORCE_INLINE long GetLastSDpos() {return sdpos;};
+  #endif
 
   #if ENABLED(LONG_FILENAME_HOST_SUPPORT)
     void printLongPath(char *path);
@@ -80,17 +76,17 @@ public:
   void updir();
   void setroot();
 
-     
-    
-
+#ifndef VENDOR_CODE
   FORCE_INLINE void pauseSDPrint() {pauseCMDsendflag=true;TFTresumingflag=true; sdprinting = false; }
+#else
+  FORCE_INLINE void pauseSDPrint() { sdprinting = false; }
+#endif 
   FORCE_INLINE bool isFileOpen() { return file.isOpen(); }
   FORCE_INLINE bool eof() { return sdpos >= filesize; }
   FORCE_INLINE int16_t get() { sdpos = file.curPosition(); return (int16_t)file.read(); }
   FORCE_INLINE void setIndex(long index) { sdpos = index; file.seekSet(index); }
   FORCE_INLINE uint8_t percentDone() { return (isFileOpen() && filesize) ? sdpos / ((filesize + 99) / 100) : 0; }
   FORCE_INLINE char* getWorkDirName() { workDir.getFilename(filename); return filename; }
-  FORCE_INLINE long GetLastSDpos() {return sdpos;};
 
 public:
   bool saving, logging, sdprinting, cardOK, filenameIsDir;
