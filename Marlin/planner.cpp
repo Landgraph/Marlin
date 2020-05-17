@@ -1209,8 +1209,9 @@ void Planner::_buffer_line(const float &a, const float &b, const float &c, const
 
   float safe_speed = block->nominal_speed;
   bool limited = false;
-LOOP_XYZE(i){
-const float jerk = fabs(current_speed[i]), maxj = max_jerk[i];
+#ifdef VENDOR_CODE
+  LOOP_XYZE(i){
+    const float jerk = fabs(current_speed[i]), maxj = max_jerk[i];
     if (jerk > maxj) {
       if (limited) {
         const float mjerk = maxj * block->nominal_speed;
@@ -1222,10 +1223,7 @@ const float jerk = fabs(current_speed[i]), maxj = max_jerk[i];
       }
     }
   }
-
-
-  
-  /*
+#else
   LOOP_XYZE(i) {
     float jerk = fabs(current_speed[i]);
     if (jerk > max_jerk[i]) {
@@ -1244,7 +1242,7 @@ const float jerk = fabs(current_speed[i]), maxj = max_jerk[i];
       }
     }
   }
-*/ 
+#endif //#ifdef VENDOR_CODE else
   if (moves_queued > 1 && previous_nominal_speed > 0.0001) {
     // Estimate a maximum velocity allowed at a joint of two successive segments.
     // If this maximum velocity allowed is lower than the minimum of the entry / exit safe velocities,
