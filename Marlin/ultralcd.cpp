@@ -30,13 +30,6 @@
 #include "configuration_store.h"
 #include "utility.h"
 
-
-//char FlagResumFromOutage=0;
-//extern unsigned char ResumingFlag;
-
-
-
-
 #if HAS_BUZZER && DISABLED(LCD_USE_I2C_BUZZER)
   #include "buzzer.h"
 #endif
@@ -2719,12 +2712,13 @@ bool lcd_blink() {
  *
  * No worries. This function is only called from the main thread.
  */
+#ifndef VENDOR_CODE
 void lcd_update() {
  
-/*  
   #if ENABLED(ULTIPANEL)
     static millis_t return_to_status_ms = 0;
     manage_manual_move();
+
     lcd_buttons_update();
 
     // If the action button is pressed...
@@ -2738,41 +2732,30 @@ void lcd_update() {
     }
     else wait_for_unclick = false;
   #endif
-*/
+
   #if ENABLED(SDSUPPORT) && PIN_EXISTS(SD_DETECT)
+
     bool sd_status = IS_SD_INSERTED;
     if (sd_status != lcd_sd_status && lcd_detected()) {
 
       if (sd_status) {
         card.initsd();
         if (lcd_sd_status != 2) LCD_MESSAGEPGM(MSG_SD_INSERTED);
-        #ifdef TFTmodel
-        MyGetFileNr();
-        NEW_SERIAL_PROTOCOLPGM("J00");
-        TFT_SERIAL_ENTER();            
-        #endif
       }
       else {
         card.release();
         if (lcd_sd_status != 2) LCD_MESSAGEPGM(MSG_SD_REMOVED);
-        #ifdef TFTmodel
-        NEW_SERIAL_PROTOCOLPGM("J01");
-        TFT_SERIAL_ENTER();
-        #endif
       }
       lcd_sd_status = sd_status;
-      /*
       lcdDrawUpdate = LCDVIEW_CLEAR_CALL_REDRAW;
       lcd_implementation_init( // to maybe revive the LCD if static electricity killed it.
         #if ENABLED(LCD_PROGRESS_BAR)
           currentScreen == lcd_status_screen
         #endif
       );
-      */
     }
 
   #endif //SDSUPPORT && SD_DETECT_PIN
-/*
   millis_t ms = millis();
   if (ELAPSED(ms, next_lcd_update_ms)) {
 
@@ -2959,8 +2942,8 @@ void lcd_update() {
         }
     } // LCD_HANDLER_CONDITION
   } // ELAPSED(ms, next_lcd_update_ms)
-  */
 }
+#endif //#ifndef VENDOR_CODE
 
 void set_utf_strlen(char* s, uint8_t n) {
   uint8_t i = 0, j = 0;

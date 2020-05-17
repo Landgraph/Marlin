@@ -28,6 +28,7 @@
 #include "temperature.h"
 #include "configuration_store.h"
 #include "music.h"
+#include "ultralcd.h"
 
 #if ENABLED(SDSUPPORT)
   #include "cardreader.h"
@@ -1403,4 +1404,35 @@ float Temperature::get_pid_output(int e) {
 
   return pid_output;
 }
+
+#if ENABLED(ULTRA_LCD)
+void lcd_update() {
+  #if ENABLED(SDSUPPORT) && PIN_EXISTS(SD_DETECT)
+    bool sd_status = IS_SD_INSERTED;
+    if (sd_status != lcd_sd_status && lcd_detected()) {
+
+      if (sd_status) {
+        card.initsd();
+        if (lcd_sd_status != 2) LCD_MESSAGEPGM(MSG_SD_INSERTED);
+        #ifdef TFTmodel
+        MyGetFileNr();
+        NEW_SERIAL_PROTOCOLPGM("J00");
+        TFT_SERIAL_ENTER();            
+        #endif
+      }
+      else {
+        card.release();
+        if (lcd_sd_status != 2) LCD_MESSAGEPGM(MSG_SD_REMOVED);
+        #ifdef TFTmodel
+        NEW_SERIAL_PROTOCOLPGM("J01");
+        TFT_SERIAL_ENTER();
+        #endif
+      }
+      lcd_sd_status = sd_status;
+    }
+
+  #endif //SDSUPPORT && SD_DETECT_PIN
+}
+#endif // #if ENABLED(ULTRA_LCD)
+
 #endif // #ifdef VENDOR_CODE
