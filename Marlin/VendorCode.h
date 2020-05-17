@@ -110,14 +110,13 @@ extern void USBOnLineTest();
 extern void SDCARD_UPDATA();
 extern void pauseCMDsend();
 
-
 #if ENABLED(SDSUPPORT)
 #if defined(OutageTest)
 extern unsigned char PowerTestFlag;
 extern char seekdataflag;
 #endif
 extern char TFTStatusFlag;
-extern char sdcardstartprintingflag; 
+extern char sdcardstartprintingflag;
 extern uint16_t filenumber;
 extern bool pauseCMDsendflag;
 #endif

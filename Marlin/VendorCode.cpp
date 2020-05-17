@@ -90,7 +90,7 @@ const unsigned int Max_ModelCooling = MAX_MODEL_COOLING_PRECENT_VALUE * 255;
 
 char TFTpausingFlag = 0; //for return a flag that buffer carry out
 char TFTStatusFlag = 0;
-char TFTresumingflag=0;
+char TFTresumingflag = 0;
 char sdcardstartprintingflag = 0;
 char FilamentTestFlag = true;
 //float MYfeedrate_mm_s=2000;
@@ -1575,184 +1575,193 @@ void lcd_update()
 #endif // #if ENABLED(ULTRA_LCD)
 
 #if ENABLED(SDSUPPORT)
-void CardReader::Myls() 
+void CardReader::Myls()
 {
-  lsAction=MySerial3Print;
+  lsAction = MySerial3Print;
   root.rewind();
-  lsDive("",root);
+  lsDive("", root);
 }
 
-uint16_t MyFileNrCnt=0;
+uint16_t MyFileNrCnt = 0;
 extern bool ReadMyfileNrFlag;
-uint16_t fileoutputcnt=0;
+uint16_t fileoutputcnt = 0;
 extern char *createFilename(char *buffer, const dir_t &p);
 
-void  CardReader::lsDive(const char *prepend,SdFile parent, const char * const match/*=NULL*/)
+void CardReader::lsDive(const char *prepend, SdFile parent, const char *const match /*=NULL*/)
 {
   dir_t p;
- uint8_t cnt=0;
+  uint8_t cnt = 0;
   while (parent.readDir(p, longFilename) > 0)
   {
-    if( DIR_IS_SUBDIR(&p) && lsAction!=LS_Count && lsAction!=LS_GetFilename) // hence LS_SerialPrint
+    if (DIR_IS_SUBDIR(&p) && lsAction != LS_Count && lsAction != LS_GetFilename) // hence LS_SerialPrint
     {
 
-      char path[13*2];
+      char path[13 * 2];
       char lfilename[13];
-      createFilename(lfilename,p);
-      path[0]=0;
-      if(strlen(prepend)==0) //avoid leading / if already in prepend
+      createFilename(lfilename, p);
+      path[0] = 0;
+      if (strlen(prepend) == 0) //avoid leading / if already in prepend
       {
-       strcat(path,"/");
+        strcat(path, "/");
       }
-      strcat(path,prepend);
-      strcat(path,lfilename);
-      strcat(path,"/");
+      strcat(path, prepend);
+      strcat(path, lfilename);
+      strcat(path, "/");
       //Serial.print(path);
-      
+
       SdFile dir;
-      if(!dir.open(parent,lfilename, O_READ))
+      if (!dir.open(parent, lfilename, O_READ))
       {
-        if(lsAction==LS_SerialPrint)
+        if (lsAction == LS_SerialPrint)
         {
           SERIAL_ECHO_START;
           SERIAL_ECHOLN(MSG_SD_CANT_OPEN_SUBDIR);
           SERIAL_ECHOLN(lfilename);
-//          #ifdef TFTmodel
-//          NEW_SERIAL_ECHOLN(MSG_SD_CANT_OPEN_SUBDIR);
-//          NEW_SERIAL_ECHOLN(lfilename);
-//          #endif
+          //          #ifdef TFTmodel
+          //          NEW_SERIAL_ECHOLN(MSG_SD_CANT_OPEN_SUBDIR);
+          //          NEW_SERIAL_ECHOLN(lfilename);
+          //          #endif
         }
       }
-      lsDive(path,dir);
+      lsDive(path, dir);
       //close done automatically by destructor of SdFile
-
-      
     }
     else
     {
-      if (p.name[0] == DIR_NAME_FREE) break;
-      if (p.name[0] == DIR_NAME_DELETED || p.name[0] == '.'|| p.name[0] == '_') continue;
-      if (longFilename[0] != '\0' &&
-          (longFilename[0] == '.' || longFilename[0] == '_')) continue;
-      if ( p.name[0] == '.')
-      {
-        if ( p.name[1] != '.')
+      if (p.name[0] == DIR_NAME_FREE)
+        break;
+      if (p.name[0] == DIR_NAME_DELETED || p.name[0] == '.' || p.name[0] == '_')
         continue;
-      }
-      
-      if (!DIR_IS_FILE_OR_SUBDIR(&p)) continue;
-      filenameIsDir=DIR_IS_SUBDIR(&p);         
-      if(!filenameIsDir)
+      if (longFilename[0] != '\0' &&
+          (longFilename[0] == '.' || longFilename[0] == '_'))
+        continue;
+      if (p.name[0] == '.')
       {
-        if(p.name[8]!='G') continue;
-        if(p.name[9]=='~') continue;
+        if (p.name[1] != '.')
+          continue;
+      }
+
+      if (!DIR_IS_FILE_OR_SUBDIR(&p))
+        continue;
+      filenameIsDir = DIR_IS_SUBDIR(&p);
+      if (!filenameIsDir)
+      {
+        if (p.name[8] != 'G')
+          continue;
+        if (p.name[9] == '~')
+          continue;
       }
       //if(cnt++!=nr) continue;
-      createFilename(filename,p);
-     
-     if(lsAction==MySerial3Print)
-     {
-      if(ReadMyfileNrFlag)
-        {
-        if((strstr(filename,".gco")!=NULL)||(strstr(filename,".GCO")!=NULL))MyFileNrCnt++;
-	//  MyFileNrCnt++;
-        }
-      else 
+      createFilename(filename, p);
+
+      if (lsAction == MySerial3Print)
       {
-      //  if((MyFileNrCnt-filenumber*4)<4)
-        if((MyFileNrCnt-filenumber)<4)
+        if (ReadMyfileNrFlag)
         {
-          if(fileoutputcnt<(MyFileNrCnt-filenumber))
-          {
-                                          NEW_SERIAL_PROTOCOL(prepend);
-            NEW_SERIAL_PROTOCOLLN(filename);
-                                  //        NEW_SERIAL_PROTOCOL(prepend);
-            NEW_SERIAL_PROTOCOLLN(longFilename);              
-          }
+          if ((strstr(filename, ".gco") != NULL) || (strstr(filename, ".GCO") != NULL))
+            MyFileNrCnt++;
+          //  MyFileNrCnt++;
         }
-    //    else if((fileoutputcnt>=((MyFileNrCnt-4)-filenumber*4))&&(fileoutputcnt<MyFileNrCnt-filenumber*4))
-      else if((fileoutputcnt>=((MyFileNrCnt-4)-filenumber))&&(fileoutputcnt<MyFileNrCnt-filenumber))
+        else
         {
-          NEW_SERIAL_PROTOCOL(prepend);
-          NEW_SERIAL_PROTOCOLLN(filename);
-                            //      NEW_SERIAL_PROTOCOL(prepend);
-          NEW_SERIAL_PROTOCOLLN(longFilename);                    
-        } 
-        fileoutputcnt++;     	
+          //  if((MyFileNrCnt-filenumber*4)<4)
+          if ((MyFileNrCnt - filenumber) < 4)
+          {
+            if (fileoutputcnt < (MyFileNrCnt - filenumber))
+            {
+              NEW_SERIAL_PROTOCOL(prepend);
+              NEW_SERIAL_PROTOCOLLN(filename);
+              //        NEW_SERIAL_PROTOCOL(prepend);
+              NEW_SERIAL_PROTOCOLLN(longFilename);
+            }
+          }
+          //    else if((fileoutputcnt>=((MyFileNrCnt-4)-filenumber*4))&&(fileoutputcnt<MyFileNrCnt-filenumber*4))
+          else if ((fileoutputcnt >= ((MyFileNrCnt - 4) - filenumber)) && (fileoutputcnt < MyFileNrCnt - filenumber))
+          {
+            NEW_SERIAL_PROTOCOL(prepend);
+            NEW_SERIAL_PROTOCOLLN(filename);
+            //      NEW_SERIAL_PROTOCOL(prepend);
+            NEW_SERIAL_PROTOCOLLN(longFilename);
+          }
+          fileoutputcnt++;
+        }
+        if (fileoutputcnt >= MyFileNrCnt)
+          fileoutputcnt = 0;
       }
-      if(fileoutputcnt>=MyFileNrCnt) fileoutputcnt=0;    
-     }
-      else if(lsAction==LS_SerialPrint)    
-      {   
+      else if (lsAction == LS_SerialPrint)
+      {
         SERIAL_PROTOCOL(prepend);
         SERIAL_PROTOCOLLN(filename);
       }
-      else if(lsAction==LS_Count)
+      else if (lsAction == LS_Count)
       {
         nrFiles++;
-      } 
-      else if(lsAction==LS_GetFilename)
+      }
+      else if (lsAction == LS_GetFilename)
       {
-      //  if(cnt==nrFiles)
-      //    return;
-     //   cnt++;      
-          createFilename(filename, p);
-          if (match != NULL) {
-            if (strcasecmp(match, filename) == 0) return;
-          }
-          else if (cnt == nrFiles) return;
-          cnt++;
-
-       
+        //  if(cnt==nrFiles)
+        //    return;
+        //   cnt++;
+        createFilename(filename, p);
+        if (match != NULL)
+        {
+          if (strcasecmp(match, filename) == 0)
+            return;
+        }
+        else if (cnt == nrFiles)
+          return;
+        cnt++;
       }
     }
   }
 }
 
-void CardReader::startFileprint() {
-  if(cardOK)
+void CardReader::startFileprint()
+{
+  if (cardOK)
   {
-  sdprinting = true;
-  if(TFTresumingflag)
-    {   
-//      enquecommand_P(PSTR("G91"));  
+    sdprinting = true;
+    if (TFTresumingflag)
+    {
+      //      enquecommand_P(PSTR("G91"));
       enqueue_and_echo_commands_P(PSTR("G1 Z-20"));
-      enqueue_and_echo_commands_P(PSTR("G90"));   
-      TFTresumingflag=false;
-    }        
+      enqueue_and_echo_commands_P(PSTR("G90"));
+      TFTresumingflag = false;
+    }
   }
 }
 
 void CardReader::TFTStopPringing()
 {
   sdprinting = false;
-  TFTresumingflag=false;
-  sdcardstartprintingflag=false;
+  TFTresumingflag = false;
+  sdcardstartprintingflag = false;
   closefile();
-  quickstop_stepper();     
-  NEW_SERIAL_PROTOCOLPGM("J16");//STOP
-  TFT_SERIAL_ENTER();  
-//  autotempShutdown();
+  quickstop_stepper();
+  NEW_SERIAL_PROTOCOLPGM("J16"); //STOP
+  TFT_SERIAL_ENTER();
+  //  autotempShutdown();
   disable_x();
   disable_y();
   disable_z();
-  disable_e0();  
+  disable_e0();
 }
 
 void CardReader::TFTgetStatus()
 {
-//  if(TFTStatusFlag)
-//  {
-    if(cardOK)
-      {
-        NEW_SERIAL_PROTOCOL(itostr3(percentDone()));
-      }
-      else{
-        NEW_SERIAL_PROTOCOLPGM("J02");
-//        TFT_SERIAL_ENTER();
-      }
-//    TFTStatusFlag=0;
-//  }
+  //  if(TFTStatusFlag)
+  //  {
+  if (cardOK)
+  {
+    NEW_SERIAL_PROTOCOL(itostr3(percentDone()));
+  }
+  else
+  {
+    NEW_SERIAL_PROTOCOLPGM("J02");
+    //        TFT_SERIAL_ENTER();
+  }
+  //    TFTStatusFlag=0;
+  //  }
 }
 #endif // #if ENABLED(SDSUPPORT)
 
