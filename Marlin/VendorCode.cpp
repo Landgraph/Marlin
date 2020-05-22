@@ -36,7 +36,7 @@
 extern CardReader card; //defined in Marlin_main.cpp
 #endif
 
-#if HAS_BED_PROBE
+#ifdef HAS_BED_PROBE
 float NEW_zprobe_zoffset;
 #endif
 
@@ -1267,21 +1267,13 @@ void SDCARD_UPDATA()
 }
 
 #if ENABLED(EEPROM_SETTINGS)
-/* Declared in configuration_store.cpp */
-extern void _EEPROM_writeData(int &pos, uint8_t *value, uint8_t size);
-extern void _EEPROM_readData(int &pos, uint8_t *value, uint8_t size);
-
 //Should be same as in configuration_store.cpp
-#define EEPROM_VERSION "V27"
+#define EEPROM_VERSION "V56"
 
 #define DUMMY_PID_VALUE 3000.0f
-#define EEPROM_START() int eeprom_index = EEPROM_OFFSET
-#define EEPROM_SKIP(VAR) eeprom_index += sizeof(VAR)
-#define EEPROM_WRITE(VAR) _EEPROM_writeData(eeprom_index, (uint8_t *)&VAR, sizeof(VAR))
-#define EEPROM_READ(VAR) _EEPROM_readData(eeprom_index, (uint8_t *)&VAR, sizeof(VAR))
-
-#define EEPROM_WRITE_VAR(pos, value) _EEPROM_writeData(pos, (uint8_t *)&value, sizeof(value))
-#define EEPROM_READ_VAR(pos, value) _EEPROM_readData(pos, (uint8_t *)&value, sizeof(value))
+uint16_t fakeCrc = 0;
+#define EEPROM_WRITE_VAR(pos, value) MarlinSettings::write_data(pos, (uint8_t*)&value, sizeof(value), &fakeCrc)
+#define EEPROM_READ_VAR(pos, value) MarlinSettings::read_data(pos, (uint8_t*)&value, sizeof(value), &fakeCrc)
 
 #ifdef OutageTest
 float last_position[4] = {0.0, 0.0, 0.0, 0.0};
