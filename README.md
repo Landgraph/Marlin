@@ -1,13 +1,15 @@
-# ANYCUBIC_CHIRON_V1.3.0
-CHIRON_V1.3.0
+# Marlin 1.1.0-RC8 for Anycubic Chiron
 
-For figure out unexpected halt:
+This firmware is based on original source from [Anycubic's GitHub|https://github.com/ANYCUBIC-3D/]
+Original firmware version: [ANYCUBIC_CHIRON_V1.3.0|https://github.com/ANYCUBIC-3D/ANYCUBIC_CHIRON_V1.3.0]
 
->Added Mintemphotend filtering. 
+In this repository I don't want to create yet another Anycubic Chiron's firmware.
 
->Added Err info.
+Primary target is separation Anycubic's code from Marlin's codebase to be able
+use all Anycubic's improvements with fresh versions of Marlin.
 
-Shows on TFT's INFO, if no error, will show firmware version. 
+Base separation activity was made in branch chiron_1.3.0. As result I didn't get new firmware or
+additional functionality. It contains only cosmetic changes.
 
 # Marlin 3D Printer Firmware
 
