@@ -39,7 +39,7 @@
 #define CONFIGURATION_H
 #define CONFIGURATION_H_VERSION 010109
 
-#define MSG_MY_VERSION "V1.4.0"
+#define MSG_MY_VERSION "Marlin-V1.1.9.1"
 
 #define OutageTest  //断电续打
 

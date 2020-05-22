@@ -1,3 +1,22 @@
+# Marlin 1.1.9.1 for Anycubic Chiron
+
+This firmware is based on original source from [Anycubic's GitHub](https://github.com/ANYCUBIC-3D/)
+Original firmware version: [ANYCUBIC_CHIRON_V1.3.0](https://github.com/ANYCUBIC-3D/ANYCUBIC_CHIRON_V1.3.0)
+
+In this repository I don't want to create yet another Anycubic Chiron's firmware.
+
+Primary target is separation Anycubic's code from Marlin's codebase to be able
+use all Anycubic's improvements with fresh versions of Marlin.
+
+This version contains updated Marlin 1.1.9.1 wtih Anycubic's changes.
+
+## Updates
+
+I don't plan to update this branch frequently. Updates frequency will be dependent on original Marlin's
+updates.
+
+I plan to focus on moving changes to Marlin 2.0 branch.
+
 # Marlin 3D Printer Firmware
 <img align="right" src="../../raw/1.1.x/buildroot/share/pixmaps/logo/marlin-250.png" />
 
