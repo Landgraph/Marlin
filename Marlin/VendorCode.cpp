@@ -42,7 +42,7 @@ float NEW_zprobe_zoffset;
 
 #if ENABLED(AUTO_BED_LEVELING_BILINEAR)
 extern int bilinear_grid_spacing[2], bilinear_start[2];
-extern float bed_level_grid[GRID_MAX_POINTS_X][GRID_MAX_POINTS_Y];
+extern float z_values[GRID_MAX_POINTS_X][GRID_MAX_POINTS_Y];
 #endif
 
 extern long gcode_N, gcode_LastN, Stopped_gcode_LastN;
@@ -521,7 +521,7 @@ void get_command_from_TFT()
           }
           case 8: //A8 GET  SD LIST
             MyFileNrCnt = 0;
-            if (!IS_SD_INSERTED)
+            if (!IS_SD_INSERTED())
             {
               NEW_SERIAL_PROTOCOLPGM("J02");
               TFT_SERIAL_ENTER();
@@ -838,7 +838,7 @@ void get_command_from_TFT()
             break;
           case 26: //a26 refresh
             card.initsd();
-            if (!IS_SD_INSERTED)
+            if (!IS_SD_INSERTED())
             {
               NEW_SERIAL_PROTOCOLPGM("J02");
               TFT_SERIAL_ENTER();
@@ -896,7 +896,7 @@ void get_command_from_TFT()
               temp_x = TFTcode_value();
             if (TFTcode_seen('Y'))
               temp_y = TFTcode_value();
-            float Zvalue = bed_level_grid[temp_x][temp_y];
+            float Zvalue = z_values[temp_x][temp_y];
             Zvalue = Zvalue * 100;
             NEW_SERIAL_PROTOCOLPGM("A29V ");
             NEW_SERIAL_PROTOCOL(Zvalue);
@@ -940,7 +940,7 @@ void get_command_from_TFT()
               for (uint8_t x = 0; x < GRID_MAX_POINTS_X; x++)
               {
                 for (uint8_t y = 0; y < GRID_MAX_POINTS_Y; y++)
-                  bed_level_grid[x][y] += value;
+                  z_values[x][y] += value;
               }
               NEW_SERIAL_PROTOCOLPGM("A31V ");
               NEW_SERIAL_PROTOCOL(NEW_zprobe_zoffset);
@@ -1022,7 +1022,7 @@ void get_command_from_TFT()
             if (TFTcode_seen('V'))
             {
               float i = constrain(TFTcode_value() / 100, -10, 10);
-              bed_level_grid[x_array][y_array] = i;
+              z_values[x_array][y_array] = i;
             }
             if (TFTcode_seen('S'))
               SaveAutoBedGridData();
@@ -1113,7 +1113,7 @@ void setupMyZoffset()
     for (uint8_t x = 0; x < GRID_MAX_POINTS_X; x++)
     {
       for (uint8_t y = 0; y < GRID_MAX_POINTS_Y; y++)
-        bed_level_grid[x][y] = -3.5;
+        z_values[x][y] = -3.5;
     };
     //  Manual_Leveling=0xaa;
     bilinear_grid_spacing[0] = int((RIGHT_PROBE_BED_POSITION - LEFT_PROBE_BED_POSITION) / (GRID_MAX_POINTS_X - 1));
@@ -1242,7 +1242,7 @@ void MY_AUTOlevelAlarm()
 void SDCARD_UPDATA()
 {
 
-  bool sd_status = IS_SD_INSERTED;
+  bool sd_status = IS_SD_INSERTED();
   if (sd_status != lcd_sd_status)
   {
     if (sd_status)
@@ -1396,7 +1396,7 @@ void SaveAutoBedGridData()
   EEPROM_WRITE_VAR(j, ver);
   EEPROM_WRITE_VAR(j, bilinear_grid_spacing);
   EEPROM_WRITE_VAR(j, bilinear_start);
-  EEPROM_WRITE_VAR(j, bed_level_grid);
+  EEPROM_WRITE_VAR(j, z_values);
   EEPROM_WRITE_VAR(j, NEW_zprobe_zoffset);
 
   //  EEPROM_WRITE_VAR(j,Manual_Leveling );
@@ -1410,7 +1410,7 @@ void ReadAutoBedGridData()
   EEPROM_READ_VAR(i, stored_ver);
   EEPROM_READ_VAR(i, bilinear_grid_spacing);
   EEPROM_READ_VAR(i, bilinear_start);
-  EEPROM_READ_VAR(i, bed_level_grid);
+  EEPROM_READ_VAR(i, z_values);
   EEPROM_READ_VAR(i, NEW_zprobe_zoffset);
 
   //    EEPROM_READ_VAR(i,Manual_Leveling);
@@ -1423,8 +1423,8 @@ float Temperature::get_pid_output(const int8_t e)
 {
 
 //Define has been copied from temperature.cpp
-#ifdef K1
-#define K2 (1.0 - K1)
+#if defined(PID_K1) && !defined(PID_K2)
+#define PID_K2 (1.0 - PID_K1)
 #endif
 
 #if HOTENDS == 1
@@ -1437,7 +1437,7 @@ float Temperature::get_pid_output(const int8_t e)
 #if ENABLED(PIDTEMP)
 #if DISABLED(PID_OPENLOOP)
   pid_error[HOTEND_INDEX] = target_temperature[HOTEND_INDEX] - current_temperature[HOTEND_INDEX];
-  dTerm[HOTEND_INDEX] = K2 * PID_PARAM(Kd, HOTEND_INDEX) * (current_temperature[HOTEND_INDEX] - temp_dState[HOTEND_INDEX]) + K1 * dTerm[HOTEND_INDEX];
+  dTerm[HOTEND_INDEX] = PID_K2 * PID_PARAM(Kd, HOTEND_INDEX) * (current_temperature[HOTEND_INDEX] - temp_dState[HOTEND_INDEX]) + PID_K1 * dTerm[HOTEND_INDEX];
   temp_dState[HOTEND_INDEX] = current_temperature[HOTEND_INDEX];
 #if HEATER_IDLE_HANDLER
   if (heater_idle_timeout_exceeded[HOTEND_INDEX])
@@ -1542,7 +1542,7 @@ float Temperature::get_pid_output(const int8_t e)
 void lcd_update()
 {
 #if ENABLED(SDSUPPORT) && PIN_EXISTS(SD_DETECT)
-  bool sd_status = IS_SD_INSERTED;
+  bool sd_status = IS_SD_INSERTED();
   if (sd_status != lcd_sd_status && lcd_detected())
   {
 
@@ -1591,7 +1591,7 @@ void CardReader::lsDive(const char *prepend, SdFile parent, const char *const ma
 {
   dir_t p;
   uint8_t cnt = 0;
-  while (parent.readDir(p, longFilename) > 0)
+  while (parent.readDir(&p, longFilename) > 0)
   {
     if (DIR_IS_SUBDIR(&p) && lsAction != LS_Count && lsAction != LS_GetFilename) // hence LS_SerialPrint
     {
@@ -1610,11 +1610,11 @@ void CardReader::lsDive(const char *prepend, SdFile parent, const char *const ma
       //Serial.print(path);
 
       SdFile dir;
-      if (!dir.open(parent, lfilename, O_READ))
+      if (!dir.open(&parent, lfilename, O_READ))
       {
         if (lsAction == LS_SerialPrint)
         {
-          SERIAL_ECHO_START;
+          SERIAL_ECHO_START();
           SERIAL_ECHOLN(MSG_SD_CANT_OPEN_SUBDIR);
           SERIAL_ECHOLN(lfilename);
           //          #ifdef TFTmodel

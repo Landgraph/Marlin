@@ -11233,7 +11233,7 @@ inline void gcode_M502() {
           float height_difference =(value-zprobe_zoffset);
         for (uint8_t x = 0; x < GRID_MAX_POINTS_X; x++)
              for (uint8_t y = 0; y < GRID_MAX_POINTS_Y; y++)
-               bed_level_grid[x][y] += height_difference;
+               z_values[x][y] += height_difference;
         zprobe_zoffset = value;
         SaveAutoBedGridData();
       }
@@ -13514,7 +13514,7 @@ void process_parsed_command() {
         for (uint8_t x = 0; x < GRID_MAX_POINTS_X; x++)
         {
           for (uint8_t y = 0; y < GRID_MAX_POINTS_Y; y++)
-            bed_level_grid[x][y] = temp;
+            z_values[x][y] = temp;
         };
         bilinear_grid_spacing[0] = int((RIGHT_PROBE_BED_POSITION - LEFT_PROBE_BED_POSITION) / (GRID_MAX_POINTS_X - 1));
         bilinear_grid_spacing[1] = int((BACK_PROBE_BED_POSITION - FRONT_PROBE_BED_POSITION) / (GRID_MAX_POINTS_Y - 1));
@@ -13533,7 +13533,7 @@ void process_parsed_command() {
         for (uint8_t x = 0; x < GRID_MAX_POINTS_X; x++)
         {
           for (uint8_t y = 0; y < GRID_MAX_POINTS_Y; y++)
-            bed_level_grid[x][y] = -0.1;
+            z_values[x][y] = -0.1;
         };
         bilinear_grid_spacing[0] = int((RIGHT_PROBE_BED_POSITION - LEFT_PROBE_BED_POSITION) / (GRID_MAX_POINTS_X - 1));
         bilinear_grid_spacing[1] = int((BACK_PROBE_BED_POSITION - FRONT_PROBE_BED_POSITION) / (GRID_MAX_POINTS_Y - 1));
