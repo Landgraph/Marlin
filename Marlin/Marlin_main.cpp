@@ -10402,8 +10402,8 @@ inline void gcode_M226() {
    */
   inline void gcode_M300() {
 #ifdef VENDOR_CODE
-      int beepS = code_seen('S') ? code_value_int() : 110;
-      int beepP = code_seen('P') ? code_value_int() : 1000;
+      int beepS = parser.seenval('S') ? parser.value_int() : 110;
+      int beepP = parser.seenval('P') ? parser.value_int() : 1000;
       if (beepS > 0)
       {
         #if BEEPER_PIN > 0
@@ -13507,8 +13507,8 @@ void process_parsed_command() {
       case 1000:
       { //RESET AUTOBED DATE
         float temp;
-        if (code_seen('S'))
-          temp = code_value_float();
+        if (parser.seenval('S'))
+          temp = parser.value_float();
         else
           temp = -3.5;
         for (uint8_t x = 0; x < GRID_MAX_POINTS_X; x++)
