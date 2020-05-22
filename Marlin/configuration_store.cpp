@@ -128,7 +128,9 @@
 #include "ultralcd.h"
 #include "configuration_store.h"
 
+#ifdef VENDOR_CODE
 #include "cardreader.h"
+#endif //#ifdef VENDOR_CODE
 
 #if ENABLED(MESH_BED_LEVELING)
   #include "mesh_bed_leveling.h"
@@ -196,10 +198,10 @@ void Config_Postprocess() {
   #define EEPROM_WRITE(VAR) _EEPROM_writeData(eeprom_index, (uint8_t*)&VAR, sizeof(VAR))
   #define EEPROM_READ(VAR) _EEPROM_readData(eeprom_index, (uint8_t*)&VAR, sizeof(VAR))
 
-
+#ifdef VENDOR_CODE
   #define EEPROM_WRITE_VAR(pos, value) _EEPROM_writeData(pos, (uint8_t*)&value, sizeof(value))
   #define EEPROM_READ_VAR(pos, value) _EEPROM_readData(pos, (uint8_t*)&value, sizeof(value))
-  
+#endif //#ifdef VENDOR_CODE
 
   /**
    * M500 - Store Configuration
@@ -390,6 +392,7 @@ void Config_Postprocess() {
 
     uint16_t stored_checksum;
     EEPROM_READ(stored_checksum);
+
 #ifdef VENDOR_CODE
 #ifdef AUTO_BED_LEVELING_BILINEAR
     ReadAutoBedGridData();

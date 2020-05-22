@@ -140,8 +140,6 @@ volatile bool Temperature::temp_meas_ready = false;
   bool Temperature::pid_reset[HOTENDS];
 #endif
 
-
-
 #if ENABLED(PIDTEMPBED)
   float Temperature::temp_iState_bed = { 0 },
         Temperature::temp_dState_bed = { 0 },
@@ -659,7 +657,6 @@ float Temperature::get_pid_output(int e) {
   }
 #endif //PIDTEMPBED
 
-
 /**
  * Manage heating activities for extruder hot-ends and a heated bed
  *  - Acquire updated temperature readings
@@ -707,7 +704,7 @@ void Temperature::manage_heater() {
         if (degHotend(e) < watch_target_temp[e]) {
           // Stop!
           temp++;
-          if(temp%10==0){temp=0;NEW_SERIAL_PROTOCOLPGM("J10");TFT_SERIAL_ENTER();} // SEND MESSAGE TO TFT 
+          if(temp%10==0){temp=0;NEW_SERIAL_PROTOCOLPGM("J10");TFT_SERIAL_ENTER();} // SEND MESSAGE TO TFT
           _temp_error(e, PSTR(MSG_T_HEATING_FAILED), PSTR(MSG_HEATING_FAILED_LCD));
         }
 #else //#ifdef VENDOR_CODE
@@ -1265,8 +1262,8 @@ void Temperature::init() {
       case TRRunaway:
 
       {
-        NEW_SERIAL_PROTOCOLPGM("J10");TFT_SERIAL_ENTER(); // SEND MESSAGE TO TFT 
-        _temp_error(heater_id, PSTR(MSG_T_THERMAL_RUNAWAY), PSTR(MSG_THERMAL_RUNAWAY));        
+        NEW_SERIAL_PROTOCOLPGM("J10");TFT_SERIAL_ENTER(); // SEND MESSAGE TO TFT
+        _temp_error(heater_id, PSTR(MSG_T_THERMAL_RUNAWAY), PSTR(MSG_THERMAL_RUNAWAY));
       }
 #else //#ifndef VENDOR_CODE
       case TRRunaway:
@@ -1918,7 +1915,7 @@ void Temperature::isr() {
     };
 
     for (uint8_t e = 0; e < COUNT(temp_dir); e++) {
-      const int tdir = temp_dir[e], rawtemp = current_temperature_raw[e] * tdir;     
+      const int tdir = temp_dir[e], rawtemp = current_temperature_raw[e] * tdir;
       if (rawtemp > maxttemp_raw[e] * tdir && target_temperature[e] > 0.0f) max_temp_error(e);
       if (rawtemp < minttemp_raw[e] * tdir && !is_preheating(e) && target_temperature[e] > 0.0f) {
         #ifdef MAX_CONSECUTIVE_LOW_TEMPERATURE_ERROR_ALLOWED
@@ -1943,13 +1940,13 @@ void Temperature::isr() {
       #else
         #define GEBED >=
       #endif
-      if (current_temperature_bed_raw GEBED bed_maxttemp_raw && target_temperature_bed > 0.0f) 
+      if (current_temperature_bed_raw GEBED bed_maxttemp_raw && target_temperature_bed > 0.0f)
       {
         BedMinTempCounter++;
         if(BedMinTempCounter>20){BedMinTempCounter=0;max_temp_error(-1);errorFlag=5;}
         else BedMinTempCounter=0;
       }
-      if (bed_minttemp_raw GEBED current_temperature_bed_raw && target_temperature_bed > 0.0f) 
+      if (bed_minttemp_raw GEBED current_temperature_bed_raw && target_temperature_bed > 0.0f)
       {
           BedMinTempCounter++;
           if(BedMinTempCounter>20){BedMinTempCounter=0;min_temp_error(-1);errorFlag=3;}

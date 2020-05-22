@@ -70,7 +70,6 @@
  * http://youtu.be/wAL9d7FgInk
  * http://calculator.josefprusa.cz
  * http://reprap.org/wiki/Triffid_Hunter%27s_Calibration_Guide
- * 
  * http://www.thingiverse.com/thing:5573
  * https://sites.google.com/site/repraplogphase/calibration-of-your-reprap
  * http://www.thingiverse.com/thing:298812
@@ -370,7 +369,6 @@
   #define  DEFAULT_bedKp 97.1
   #define  DEFAULT_bedKi 1.41
   #define  DEFAULT_bedKd 1675.16
-  
 
   //120V 250W silicone heater into 4mm borosilicate (MendelMax 1.5+)
   //from pidautotune
@@ -394,7 +392,6 @@
 // Note that for Bowden Extruders a too-small value here may prevent loading.
 #define PREVENT_LENGTHY_EXTRUDE
 #define EXTRUDE_MAXLENGTH 600
-
 
 //===========================================================================
 //======================== Thermal Runaway Protection =======================
@@ -463,11 +460,6 @@
   //#define ENDSTOPPULLUP_ZMIN_PROBE
 #endif
 
-
-
-
-
-
 // Mechanical endstop with COM to ground and NC to Signal uses "false" here (most common setup).
 #define X_MIN_ENDSTOP_INVERTING true // set to true to invert the logic of the endstop.
 #define Y_MIN_ENDSTOP_INVERTING true // set to true to invert the logic of the endstop.
@@ -517,19 +509,17 @@
  * Default Max Acceleration (change/s) change = mm/s
  * (Maximum start speed for accelerated moves)
  * Override with M201
- * 
- * Override with M204
- *
- *   M204 P    Acceleration
  *                                      X, Y, Z, E0 [, E1[, E2[, E3]]]
-  */
+ */
 //#define DEFAULT_MAX_ACCELERATION      { 9000, 9000, 60, 10000 }
 #define DEFAULT_MAX_ACCELERATION      { 350, 350, 50, 30000 }
 
 /**
  * Default Acceleration (change/s) change = mm/s
+ * Override with M204
+ *
+ *   M204 P    Acceleration
  *   M204 R    Retract Acceleration
- *   
  *   M204 T    Travel Acceleration
  */
 //#define DEFAULT_ACCELERATION          3000    // X, Y, Z and E acceleration for printing moves
@@ -539,7 +529,6 @@
 #define DEFAULT_ACCELERATION          350    // X, Y, Z and E acceleration for printing moves
 #define DEFAULT_RETRACT_ACCELERATION  3000    // E acceleration for retracts
 #define DEFAULT_TRAVEL_ACCELERATION   350    // X, Y, Z acceleration for travel (non printing) moves
-
 
 /**
  * Default Jerk (mm/s)
@@ -552,8 +541,6 @@
 #define DEFAULT_YJERK                 4
 #define DEFAULT_ZJERK                 0.4
 #define DEFAULT_EJERK                 20
-
-
 
 
 //===========================================================================

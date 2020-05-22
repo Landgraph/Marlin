@@ -26,6 +26,7 @@
  * This firmware is a mashup between Sprinter and grbl.
  *  - https://github.com/kliment/Sprinter
  *  - https://github.com/simen/grbl/tree
+ *
  * It has preliminary support for Matthew Roberts advance algorithm
  *  - http://reprap.org/pipermail/reprap-dev/2011-May/003323.html
  */
@@ -332,7 +333,11 @@ bool axis_homed[XYZ] = { false }, axis_known_position[XYZ] = { false };
  * sending commands to Marlin, and lines will be checked for sequentiality.
  * M110 S<int> sets the current line number.
  */
+#ifdef VENDOR_CODE
 long gcode_N, gcode_LastN, Stopped_gcode_LastN = 0;
+#else //#ifndef VENDOR_CODE
+static long gcode_N, gcode_LastN, Stopped_gcode_LastN = 0;
+#endif //#ifdef VENDOR_CODE else
 
 /**
  * GCode Command Queue
@@ -344,9 +349,15 @@ long gcode_N, gcode_LastN, Stopped_gcode_LastN = 0;
  * command and hands off execution to individual handler functions.
  */
 static char command_queue[BUFSIZE][MAX_CMD_SIZE];
+#ifdef VENDOR_CODE
 uint8_t cmd_queue_index_r = 0, // Ring buffer read position
+        cmd_queue_index_w = 0, // Ring buffer write position
+        commands_in_queue = 0; // Count of commands in the queue
+#else //#ifndef VENDOR_CODE
+static uint8_t cmd_queue_index_r = 0, // Ring buffer read position
                cmd_queue_index_w = 0, // Ring buffer write position
                commands_in_queue = 0; // Count of commands in the queue
+#endif //#ifdef VENDOR_CODE else
 
 /**
  * Current GCode Command
@@ -453,9 +464,9 @@ static millis_t stepper_inactive_time = (DEFAULT_STEPPER_DEACTIVE_TIME) * 1000UL
   #define BUZZ(d,f) NOOP
 #endif
 
-static uint8_t target_extruder; 
+static uint8_t target_extruder;
 
-#if HAS_BED_PROBE 
+#if HAS_BED_PROBE
   float zprobe_zoffset;
 #endif
 
@@ -1103,6 +1114,7 @@ inline void get_serial_commands() {
   inline void get_sdcard_commands() {
     static bool stop_buffering = false,
                 sd_comment_mode = false;
+
 #ifdef VENDOR_CODE
     char i,j;
 #endif //#ifdef VENDOR_CODE
@@ -1126,7 +1138,7 @@ inline void get_serial_commands() {
 #endif //#ifdef VENDOR_CODE else
       int16_t n = card.get();
       char sd_char = (char)n;
-      card_eof = card.eof();     
+      card_eof = card.eof();
       if (card_eof || n == -1
           || sd_char == '\n' || sd_char == '\r'
           || ((sd_char == '#' || sd_char == ':') && !sd_comment_mode)
@@ -1167,7 +1179,6 @@ inline void get_serial_commands() {
         if(sd_char=='G'){last_sd_position[0]=card.GetLastSDpos();}
 #endif //#ifdef VENDOR_CODE
       }
-     
     }
 #ifdef VENDOR_CODE
     if (seekdataflag)
@@ -3003,7 +3014,7 @@ inline void gcode_G0_G1(
     #if IS_SCARA
       fast_move ? prepare_uninterpolated_move_to_destination() : prepare_move_to_destination();
     #else
-    prepare_move_to_destination();
+      prepare_move_to_destination();
     #endif
   }
 }
@@ -3139,7 +3150,7 @@ inline void gcode_G4() {
       //      SERIAL_ECHOLNPGM("G5:PowerTestFlag=TRUE");
       attachInterrupt(PowerInt, PowerKill, CHANGE); //INITIANAL SET
     }
-    /*   
+    /*
       SERIAL_ECHOPAIR("detection", NEW_zprobe_zoffset);
       SERIAL_ECHOPAIR(" MYx",last_position[3]);
     SERIAL_ECHOPAIR(" MYy",last_position[2]);
@@ -3481,7 +3492,6 @@ inline void gcode_G4() {
  *  Z   Home to the Z endstop
  *
  */
-
 inline void gcode_G28() {
   #if ENABLED(DEBUG_LEVELING_FEATURE)
     if (DEBUGGING(LEVELING)) {
@@ -3494,7 +3504,7 @@ inline void gcode_G28() {
   stepper.synchronize();
 
   // For auto bed leveling, clear the level matrix
-#ifdef VENDOR_CODE  
+#ifdef VENDOR_CODE
   #if PLANNER_LEVELING
     set_bed_leveling_enabled(false);
   #endif
@@ -3594,7 +3604,7 @@ inline void gcode_G28() {
 
       // Home Y
       if (home_all_axis || homeY) {
-        HOMEAXIS(Y);        
+        HOMEAXIS(Y);
         #if ENABLED(DEBUG_LEVELING_FEATURE)
           if (DEBUGGING(LEVELING)) DEBUG_POS("> homeY", current_position);
         #endif
@@ -3616,7 +3626,7 @@ inline void gcode_G28() {
 
         // Home the 1st (left) extruder
         active_extruder = 0;
-        HOMEAXIS(X);        
+        HOMEAXIS(X);
 
         // Consider the active extruder to be parked
         memcpy(raised_parked_position, current_position, sizeof(raised_parked_position));
@@ -4304,7 +4314,7 @@ inline void gcode_G28() {
 #ifdef VENDOR_CODE
       SaveAutoBedGridData();
       NEW_SERIAL_PROTOCOLPGM("J25");//  auto leveling DONE
-      TFT_SERIAL_ENTER();    
+      TFT_SERIAL_ENTER();
       disable_x();
       disable_y();
       disable_z();
@@ -5427,7 +5437,11 @@ inline void gcode_M104() {
  */
 inline void gcode_M105() {
   if (get_target_extruder_from_command(105)) return;
- if(!card.sdprinting)UsbOnLineFlag=true; // if reveive m105 from pc,meant usb on line
+
+  #ifdef VENDOR_CODE
+  if(!card.sdprinting) UsbOnLineFlag=true; // if reveive m105 from pc,meant usb on line
+  #endif //#ifdef VENDOR_CODE
+
   #if HAS_TEMP_HOTEND || HAS_TEMP_BED
     SERIAL_PROTOCOLPGM(MSG_OK);
     print_heaterstates();
@@ -5658,20 +5672,22 @@ inline void gcode_M109() {
   } while (wait_for_heatup && TEMP_CONDITIONS);
 
   if (wait_for_heatup) LCD_MESSAGEPGM(MSG_HEATING_COMPLETE);
+
    #ifdef TFTmodel
     NEW_SERIAL_PROTOCOLPGM("J07");//hotend heating done
     TFT_SERIAL_ENTER();
-    if(card.sdprinting) 
+    if(card.sdprinting)
     {
         NEW_SERIAL_PROTOCOLPGM("J04");//printing from sd card
-        TFT_SERIAL_ENTER();        
+        TFT_SERIAL_ENTER();
     }
     else if(USBConnectFlag)
     {
         NEW_SERIAL_PROTOCOLPGM("J03");//usb connectting
-        TFT_SERIAL_ENTER();      
+        TFT_SERIAL_ENTER();
     }
     #endif
+
   KEEPALIVE_STATE(IN_HANDLER);
 }
 
@@ -5690,10 +5706,12 @@ inline void gcode_M109() {
    */
   inline void gcode_M190() {
     if (DEBUGGING(DRYRUN)) return;
-      #ifdef TFTmodel
-      NEW_SERIAL_PROTOCOLPGM("J08");//hotbed heating
-      TFT_SERIAL_ENTER();
-      #endif
+
+    #ifdef TFTmodel
+    NEW_SERIAL_PROTOCOLPGM("J08");//hotbed heating
+    TFT_SERIAL_ENTER();
+    #endif
+
     LCD_MESSAGEPGM(MSG_BED_HEATING);
     bool no_wait_for_cooling = code_seen('S');
     if (no_wait_for_cooling || code_seen('R')) {
@@ -5805,7 +5823,6 @@ inline void gcode_M109() {
     if (wait_for_heatup) LCD_MESSAGEPGM(MSG_BED_DONE);
 #endif //#ifdef VENDOR_CODE else
     KEEPALIVE_STATE(IN_HANDLER);
-    
   }
 
 #endif // HAS_TEMP_BED
@@ -5977,8 +5994,11 @@ inline void gcode_M140() {
     #if ENABLED(ULTIPANEL)
       powersupply = true;
       LCD_MESSAGEPGM(WELCOME_MSG);
-  //    lcd_update();
+#ifndef VENDOR_CODE
+      lcd_update();
+#else //#ifdef VENDOR_CODE
       TFT_Commond_Scan();
+#endif //#ifndef VENDOR_CODE else
     #endif
   }
 
@@ -8860,6 +8880,7 @@ void process_next_command() {
           break;
 
       #endif // HAS_CASE_LIGHT
+
 #ifndef VENDOR_CODE
       case 999: // M999: Restart after being Stopped
         gcode_M999();
@@ -8912,8 +8933,8 @@ void process_next_command() {
         SERIAL_ECHOPGM("Done, Auto Leveling was actived!");
       }
       break;
-   #endif 
-#endif //#ifndef VENDOR_CODE else  
+   #endif
+#endif //#ifndef VENDOR_CODE else
     }
     break;
 
@@ -10349,6 +10370,7 @@ void manage_inactivity(bool ignore_stepper_queue/*=false*/) {
   #if ENABLED(TEMP_STAT_LEDS)
     handle_status_leds();
   #endif
+
 #ifdef VENDOR_CODE
   if(!TFTresumingflag&&!PointTestFlag)
 #endif //#ifdef VENDOR_CODE
@@ -10495,7 +10517,7 @@ void setup() {
   SERIAL_ECHO_START;
 
 #ifdef VENDOR_CODE
-  #ifdef TFTmodel  
+  #ifdef TFTmodel
   NewSerial.begin(115200);
   //TFT_SERIAL_START();
   TFT_SERIAL_ENTER();
@@ -10571,7 +10593,7 @@ void setup() {
 #ifndef VENDOR_CODE
   servo_init();
 #endif //#ifdef VENDOR_CODE
- 
+
   #if HAS_PHOTOGRAPH
     OUT_WRITE(PHOTOGRAPH_PIN, LOW);
   #endif
@@ -10622,7 +10644,7 @@ void setup() {
 
 #ifdef VENDOR_CODE
   _delay_ms(20);
-  PowerOnMusic(); 
+  PowerOnMusic();
 #else //#ifndef VENDOR_CODE
   lcd_init();
 #endif //#ifdef VENDOR_CODE else
@@ -10659,9 +10681,9 @@ void setup() {
 #ifdef VENDOR_CODE
   SetUpFAN2_PIN();
 //  setuplevelTest();
-  setupSDCARD(); 
+  setupSDCARD();
   SetupFilament();
-   _delay_ms(10);  // wait 1sec to display the splash screen 
+   _delay_ms(10);  // wait 1sec to display the splash screen
 #endif //#ifdef VENDOR_CODE
 }
 

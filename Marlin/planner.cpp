@@ -726,7 +726,7 @@ void Planner::_buffer_line(const float &a, const float &b, const float &c, const
           position[E_AXIS] = target[E_AXIS]; // Behave as if the move really took place, but ignore E part
           de = 0; // no difference
           SERIAL_ECHO_START;
-          SERIAL_ECHOLNPGM(MSG_ERR_LONG_EXTRUDE_STOP);       
+          SERIAL_ECHOLNPGM(MSG_ERR_LONG_EXTRUDE_STOP);
         }
       #endif
     }
@@ -1149,7 +1149,7 @@ void Planner::_buffer_line(const float &a, const float &b, const float &c, const
   // Initial limit on the segment entry velocity
   float vmax_junction;
 
-  #if 0// Use old jerk for now
+  #if 0  // Use old jerk for now
 
     float junction_deviation = 0.1;
 
@@ -1243,6 +1243,7 @@ void Planner::_buffer_line(const float &a, const float &b, const float &c, const
     }
   }
 #endif //#ifdef VENDOR_CODE else
+
   if (moves_queued > 1 && previous_nominal_speed > 0.0001) {
     // Estimate a maximum velocity allowed at a joint of two successive segments.
     // If this maximum velocity allowed is lower than the minimum of the entry / exit safe velocities,
@@ -1266,18 +1267,24 @@ void Planner::_buffer_line(const float &a, const float &b, const float &c, const
         v_entry *= v_factor;
       }
       // Calculate jerk depending on whether the axis is coasting in the same direction or reversing.
-      const float jerk = (v_exit > v_entry)
-          ? //                                  coasting             axis reversal
-            ( (v_entry > 0.f || v_exit < 0.f) ? (v_exit - v_entry) : max(v_exit, -v_entry) )
-          : // v_exit <= v_entry                coasting             axis reversal
-            ( (v_entry < 0.f || v_exit > 0.f) ? (v_entry - v_exit) : max(-v_exit, v_entry) );
-
+      float jerk = 
+        (v_exit > v_entry) ?
+          ((v_entry > 0.f || v_exit < 0.f) ?
+            // coasting
+            (v_exit - v_entry) : 
+            // axis reversal
+            max(v_exit, -v_entry)) :
+          // v_exit <= v_entry
+          ((v_entry < 0.f || v_exit > 0.f) ?
+            // coasting
+            (v_entry - v_exit) :
+            // axis reversal
+            max(-v_exit, v_entry));
       if (jerk > max_jerk[axis]) {
         v_factor *= max_jerk[axis] / jerk;
         limited = true;
       }
     }
-    
     if (limited) vmax_junction *= v_factor;
     // Now the transition velocity is known, which maximizes the shared exit / entry velocity while
     // respecting the jerk factors, it may be possible, that applying separate safe exit / entry velocities will achieve faster prints.
@@ -1394,7 +1401,6 @@ void Planner::_set_position_mm(const float &a, const float &b, const float &c, c
   previous_nominal_speed = 0.0; // Resets planner junction speeds. Assumes start from rest.
   ZERO(previous_speed);
 }
-
 
 void Planner::set_position_mm_kinematic(const float position[NUM_AXIS]) {
   #if PLANNER_LEVELING

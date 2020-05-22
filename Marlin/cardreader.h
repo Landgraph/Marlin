@@ -56,9 +56,9 @@ public:
   void printingHasFinished();
 
   #ifdef VENDOR_CODE
-  void TFTStopPringing(); 
+  void TFTStopPringing();
   void TFTgetStatus();
-  void Myls(); 
+  void Myls();
   FORCE_INLINE long GetLastSDpos() {return sdpos;};
   #endif
 
@@ -76,11 +76,11 @@ public:
   void updir();
   void setroot();
 
-#ifndef VENDOR_CODE
+#ifdef VENDOR_CODE
   FORCE_INLINE void pauseSDPrint() {pauseCMDsendflag=true;TFTresumingflag=true; sdprinting = false; }
-#else
+#else //#ifndef VENDOR_CODE
   FORCE_INLINE void pauseSDPrint() { sdprinting = false; }
-#endif 
+#endif //#ifdef VENDOR_CODE else
   FORCE_INLINE bool isFileOpen() { return file.isOpen(); }
   FORCE_INLINE bool eof() { return sdpos >= filesize; }
   FORCE_INLINE int16_t get() { sdpos = file.curPosition(); return (int16_t)file.read(); }

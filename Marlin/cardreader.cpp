@@ -67,131 +67,80 @@ char *createFilename(char *buffer, const dir_t &p) { //buffer > 12characters
  *   LS_SerialPrint - Print the full path of each file to serial output
  */
 #ifndef VENDOR_CODE
-void  CardReader::lsDive(const char *prepend,SdFile parent, const char * const match/*=NULL*/)
-{
+void CardReader::lsDive(const char *prepend, SdFile parent, const char * const match/*=NULL*/) {
   dir_t p;
- uint8_t cnt=0;
-  while (parent.readDir(p, longFilename) > 0)
-  {
-    if( DIR_IS_SUBDIR(&p) && lsAction!=LS_Count && lsAction!=LS_GetFilename) // hence LS_SerialPrint
-    {
+  uint8_t cnt = 0;
 
-      char path[13*2];
-      char lfilename[13];
-      createFilename(lfilename,p);
-      path[0]=0;
-      if(strlen(prepend)==0) //avoid leading / if already in prepend
-      {
-       strcat(path,"/");
-      }
-      strcat(path,prepend);
-      strcat(path,lfilename);
-      strcat(path,"/");
-      //Serial.print(path);
-      
+  // Read the next entry from a directory
+  while (parent.readDir(p, longFilename) > 0) {
+
+    // If the entry is a directory and the action is LS_SerialPrint
+    if (DIR_IS_SUBDIR(&p) && lsAction != LS_Count && lsAction != LS_GetFilename) {
+
+      // Get the short name for the item, which we know is a folder
+      char lfilename[FILENAME_LENGTH];
+      createFilename(lfilename, p);
+
+      // Allocate enough stack space for the full path to a folder, trailing slash, and nul
+      boolean prepend_is_empty = (prepend[0] == '\0');
+      int len = (prepend_is_empty ? 1 : strlen(prepend)) + strlen(lfilename) + 1 + 1;
+      char path[len];
+
+      // Append the FOLDERNAME12/ to the passed string.
+      // It contains the full path to the "parent" argument.
+      // We now have the full path to the item in this folder.
+      strcpy(path, prepend_is_empty ? "/" : prepend); // root slash if prepend is empty
+      strcat(path, lfilename); // FILENAME_LENGTH-1 characters maximum
+      strcat(path, "/");       // 1 character
+
+      // Serial.print(path);
+
+      // Get a new directory object using the full path
+      // and dive recursively into it.
       SdFile dir;
-      if(!dir.open(parent,lfilename, O_READ))
-      {
-        if(lsAction==LS_SerialPrint)
-        {
+      if (!dir.open(parent, lfilename, O_READ)) {
+        if (lsAction == LS_SerialPrint) {
           SERIAL_ECHO_START;
-          SERIAL_ECHOLN(MSG_SD_CANT_OPEN_SUBDIR);
+          SERIAL_ECHOPGM(MSG_SD_CANT_OPEN_SUBDIR);
           SERIAL_ECHOLN(lfilename);
-//          #ifdef TFTmodel
-//          NEW_SERIAL_ECHOLN(MSG_SD_CANT_OPEN_SUBDIR);
-//          NEW_SERIAL_ECHOLN(lfilename);
-//          #endif
         }
       }
-      lsDive(path,dir);
-      //close done automatically by destructor of SdFile
-
-      
+      lsDive(path, dir);
+      // close() is done automatically by destructor of SdFile
     }
-    else
-    {
-      if (p.name[0] == DIR_NAME_FREE) break;
-      if (p.name[0] == DIR_NAME_DELETED || p.name[0] == '.'|| p.name[0] == '_') continue;
-      if (longFilename[0] != '\0' &&
-          (longFilename[0] == '.' || longFilename[0] == '_')) continue;
-      if ( p.name[0] == '.')
-      {
-        if ( p.name[1] != '.')
-        continue;
-      }
-      
-      if (!DIR_IS_FILE_OR_SUBDIR(&p)) continue;
-      filenameIsDir=DIR_IS_SUBDIR(&p);         
-      if(!filenameIsDir)
-      {
-        if(p.name[8]!='G') continue;
-        if(p.name[9]=='~') continue;
-      }
-      //if(cnt++!=nr) continue;
-      createFilename(filename,p);
-     
-     if(lsAction==MySerial3Print)
-     {
-      if(ReadMyfileNrFlag)
-        {
-        if((strstr(filename,".gco")!=NULL)||(strstr(filename,".GCO")!=NULL))MyFileNrCnt++;
-	//  MyFileNrCnt++;
-        }
-      else 
-      {
-      //  if((MyFileNrCnt-filenumber*4)<4)
-        if((MyFileNrCnt-filenumber)<4)
-        {
-          if(fileoutputcnt<(MyFileNrCnt-filenumber))
-          {
-                                          NEW_SERIAL_PROTOCOL(prepend);
-            NEW_SERIAL_PROTOCOLLN(filename);
-                                  //        NEW_SERIAL_PROTOCOL(prepend);
-            NEW_SERIAL_PROTOCOLLN(longFilename);              
-          }
-        }
-    //    else if((fileoutputcnt>=((MyFileNrCnt-4)-filenumber*4))&&(fileoutputcnt<MyFileNrCnt-filenumber*4))
-      else if((fileoutputcnt>=((MyFileNrCnt-4)-filenumber))&&(fileoutputcnt<MyFileNrCnt-filenumber))
-        {
-          NEW_SERIAL_PROTOCOL(prepend);
-          NEW_SERIAL_PROTOCOLLN(filename);
-                            //      NEW_SERIAL_PROTOCOL(prepend);
-          NEW_SERIAL_PROTOCOLLN(longFilename);                    
-        } 
-        fileoutputcnt++;     	
-      }
-      if(fileoutputcnt>=MyFileNrCnt) fileoutputcnt=0;    
+    else {
+      uint8_t pn0 = p.name[0];
+      if (pn0 == DIR_NAME_FREE) break;
+      if (pn0 == DIR_NAME_DELETED || pn0 == '.') continue;
+      if (longFilename[0] == '.') continue;
 
+      if (!DIR_IS_FILE_OR_SUBDIR(&p) || (p.attributes & DIR_ATT_HIDDEN)) continue;
 
+      filenameIsDir = DIR_IS_SUBDIR(&p);
 
+      if (!filenameIsDir && (p.name[8] != 'G' || p.name[9] == '~')) continue;
 
-  
-     }
-      else if(lsAction==LS_SerialPrint)    
-      {   
-        SERIAL_PROTOCOL(prepend);
-        SERIAL_PROTOCOLLN(filename);
-      }
-      else if(lsAction==LS_Count)
-      {
-        nrFiles++;
-      } 
-      else if(lsAction==LS_GetFilename)
-      {
-      //  if(cnt==nrFiles)
-      //    return;
-     //   cnt++;      
+      switch (lsAction) {
+        case LS_Count:
+          nrFiles++;
+          break;
+        case LS_SerialPrint:
+          createFilename(filename, p);
+          SERIAL_PROTOCOL(prepend);
+          SERIAL_PROTOCOLLN(filename);
+          break;
+        case LS_GetFilename:
           createFilename(filename, p);
           if (match != NULL) {
             if (strcasecmp(match, filename) == 0) return;
           }
           else if (cnt == nrFiles) return;
           cnt++;
-
-       
+          break;
       }
+
     }
-  }
+  } // while readDir
 }
 #endif // #ifndef VENDOR_CODE
 
@@ -326,7 +275,7 @@ void CardReader::openAndPrintFile(const char *name) {
 
 #ifndef VENDOR_CODE
 void CardReader::startFileprint() {
-  if(cardOK) sdprinting = true;
+  if (cardOK) sdprinting = true;
 }
 #endif // #ifndef VENDOR_CODE
 
@@ -368,10 +317,11 @@ void CardReader::openFile(char* name, bool read, bool push_current/*=false*/) {
         kill(PSTR(MSG_KILLED));
         return;
       }
+
      #ifdef TFTmodel
 //     NEW_SERIAL_ECHOPGM("SUBROUTINE CALL target:\"");
      NEW_SERIAL_ECHO(name);
-//     NEW_SERIAL_ECHOPGM("\" parent:\"");     
+//     NEW_SERIAL_ECHOPGM("\" parent:\"");
      #endif
       // Store current filename and position
       getAbsFilename(proc_filenames[file_subcall_ctr]);
@@ -431,7 +381,7 @@ void CardReader::openFile(char* name, bool read, bool push_current/*=false*/) {
           TFT_SERIAL_ENTER();
       //    NEW_SERIAL_PROTOCOL(subdirname);
         //  NEW_SERIAL_PROTOCOLLNPGM(".");
-          #endif         
+          #endif
           return;
         }
         else {
@@ -467,7 +417,7 @@ void CardReader::openFile(char* name, bool read, bool push_current/*=false*/) {
       TFT_SERIAL_ENTER();
 //      NEW_SERIAL_PROTOCOL(fname);
 //      NEW_SERIAL_PROTOCOLPGM(MSG_SD_SIZE);
-//      NEW_SERIAL_PROTOCOLLN(filesize);      
+//      NEW_SERIAL_PROTOCOLLN(filesize);
 //      NEW_SERIAL_PROTOCOLLNPGM(MSG_SD_FILE_SELECTED);
       #endif
       getfilename(0, fname);
@@ -576,7 +526,6 @@ void CardReader::getStatus() {
     SERIAL_PROTOCOLLNPGM(MSG_SD_NOT_PRINTING);
   }
 }
-
 
 void CardReader::write_command(char *buf) {
   char* begin = buf;
