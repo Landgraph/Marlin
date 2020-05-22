@@ -1,0 +1,4326 @@
+diff --git a/Marlin/Configuration.h b/Marlin/Configuration.h
+similarity index 91%
+index 8377b2f..3d80d4c 100644
+--- a/Marlin/Configuration.h
++++ b/Marlin/Configuration.h
+@@ -51,6 +51,14 @@
+ #define CONFIGURATION_H
+ #define CONFIGURATION_H_VERSION 010109
+ 
++#define MSG_MY_VERSION "V1.3.0"
++
++#define OutageTest  //断电续打
++
++#define TFTmodel
++
++#define VENDOR_CODE
++
+ //===========================================================================
+ //============================= Getting Started =============================
+ //===========================================================================
+@@ -86,10 +94,10 @@
+ // User-specified version info of this build to display in [Pronterface, etc] terminal window during
+ // startup. Implementation of an idea by Prof Braino to inform user that any changes made to this
+ // build by the user have been successfully uploaded into firmware.
+-#define STRING_CONFIG_H_AUTHOR "(none, default config)" // Who made the changes.
+-#define SHOW_BOOTSCREEN
+-#define STRING_SPLASH_LINE1 SHORT_BUILD_VERSION // will be shown during bootup in line 1
+-#define STRING_SPLASH_LINE2 WEBSITE_URL         // will be shown during bootup in line 2
++#define STRING_CONFIG_H_AUTHOR "(Jolly, xxxxxxxx.CO.)" // Who made the changes.
++//#define SHOW_BOOTSCREEN
++//#define STRING_SPLASH_LINE1 SHORT_BUILD_VERSION // will be shown during bootup in line 1
++//#define STRING_SPLASH_LINE2 WEBSITE_URL         // will be shown during bootup in line 2
+ 
+ /**
+  * *** VENDORS PLEASE READ ***
+@@ -249,12 +257,12 @@
+  *
+  * :{ '0': "Not used", '1':"100k / 4.7k - EPCOS", '2':"200k / 4.7k - ATC Semitec 204GT-2", '3':"Mendel-parts / 4.7k", '4':"10k !! do not use for a hotend. Bad resolution at high temp. !!", '5':"100K / 4.7k - ATC Semitec 104GT-2 (Used in ParCan & J-Head)", '501':"100K Zonestar (Tronxy X3A)", '6':"100k / 4.7k EPCOS - Not as accurate as Table 1", '7':"100k / 4.7k Honeywell 135-104LAG-J01", '8':"100k / 4.7k 0603 SMD Vishay NTCS0603E3104FXT", '9':"100k / 4.7k GE Sensing AL03006-58.2K-97-G1", '10':"100k / 4.7k RS 198-961", '11':"100k / 4.7k beta 3950 1%", '12':"100k / 4.7k 0603 SMD Vishay NTCS0603E3104FXT (calibrated for Makibox hot bed)", '13':"100k Hisens 3950  1% up to 300°C for hotend 'Simple ONE ' & hotend 'All In ONE'", '20':"PT100 (Ultimainboard V2.x)", '51':"100k / 1k - EPCOS", '52':"200k / 1k - ATC Semitec 204GT-2", '55':"100k / 1k - ATC Semitec 104GT-2 (Used in ParCan & J-Head)", '60':"100k Maker's Tool Works Kapton Bed Thermistor beta=3950", '66':"Dyze Design 4.7M High Temperature thermistor", '70':"the 100K thermistor found in the bq Hephestos 2", '71':"100k / 4.7k Honeywell 135-104LAF-J01", '147':"Pt100 / 4.7k", '1047':"Pt1000 / 4.7k", '110':"Pt100 / 1k (non-standard)", '1010':"Pt1000 / 1k (non standard)", '-4':"Thermocouple + AD8495", '-3':"Thermocouple + MAX31855 (only for sensor 0)", '-2':"Thermocouple + MAX6675 (only for sensor 0)", '-1':"Thermocouple + AD595",'998':"Dummy 1", '999':"Dummy 2" }
+  */
+-#define TEMP_SENSOR_0 1
++#define TEMP_SENSOR_0 5
+ #define TEMP_SENSOR_1 0
+ #define TEMP_SENSOR_2 0
+ #define TEMP_SENSOR_3 0
+ #define TEMP_SENSOR_4 0
+-#define TEMP_SENSOR_BED 0
++#define TEMP_SENSOR_BED 1
+ #define TEMP_SENSOR_CHAMBER 0
+ 
+ // Dummy thermistor constant temperature readings, for use with 998 and 999
+@@ -266,7 +274,7 @@
+ 
+ // Extruder temperature must be close to target for this long before M109 returns success
+ #define TEMP_RESIDENCY_TIME 10  // (seconds)
+-#define TEMP_HYSTERESIS 3       // (degC) range of +/- temperatures considered "close" to the target one
++#define TEMP_HYSTERESIS 4       // (degC) range of +/- temperatures considered "close" to the target one
+ #define TEMP_WINDOW     1       // (degC) Window around target to start the residency timer x degC early.
+ 
+ // Bed temperature must be close to target for this long before M190 returns success
+@@ -286,12 +294,12 @@
+ // When temperature exceeds max temp, your heater will be switched off.
+ // This feature exists to protect your hotend from overheating accidentally, but *NOT* from thermistor short/failure!
+ // You should use MINTEMP for thermistor short/failure protection.
+-#define HEATER_0_MAXTEMP 275
+-#define HEATER_1_MAXTEMP 275
+-#define HEATER_2_MAXTEMP 275
+-#define HEATER_3_MAXTEMP 275
+-#define HEATER_4_MAXTEMP 275
+-#define BED_MAXTEMP 150
++#define HEATER_0_MAXTEMP 265
++//#define HEATER_1_MAXTEMP 275
++//#define HEATER_2_MAXTEMP 275
++//#define HEATER_3_MAXTEMP 275
++//#define HEATER_4_MAXTEMP 275
++#define BED_MAXTEMP 106
+ 
+ //===========================================================================
+ //============================= PID Settings ================================
+@@ -308,15 +316,15 @@
+   //#define SLOW_PWM_HEATERS // PWM with very low frequency (roughly 0.125Hz=8s) and minimum state time of approximately 1s useful for heaters driven by a relay
+   //#define PID_PARAMS_PER_HOTEND // Uses separate PID parameters for each extruder (useful for mismatched extruders)
+                                   // Set/get with gcode: M301 E[extruder number, 0-2]
+-  #define PID_FUNCTIONAL_RANGE 10 // If the temperature difference between the target temperature and the actual temperature
++  #define PID_FUNCTIONAL_RANGE 25 // If the temperature difference between the target temperature and the actual temperature
+                                   // is more than PID_FUNCTIONAL_RANGE then the PID will be shut off and the heater will be set to min/max.
+ 
+   // If you are using a pre-configured hotend then you can use one of the value sets by uncommenting it
+ 
+   // Ultimaker
+-  #define  DEFAULT_Kp 22.2
+-  #define  DEFAULT_Ki 1.08
+-  #define  DEFAULT_Kd 114
++  #define  DEFAULT_Kp 20//19//15//22.97// 20    //IF DON'T USE HOTBED,PLEASE USE P22.97 I 1.80 D 73.44
++  #define  DEFAULT_Ki 0.5//1.34//1.1//1.80//0.31
++  #define  DEFAULT_Kd 106.55//106.55// 60.55//73.40 //130
+ 
+   // MakerGear
+   //#define  DEFAULT_Kp 7.0
+@@ -342,7 +350,7 @@
+  * heater. If your configuration is significantly different than this and you don't understand
+  * the issues involved, don't use bed PID until someone else verifies that your hardware works.
+  */
+-//#define PIDTEMPBED
++#define PIDTEMPBED
+ 
+ //#define BED_LIMIT_SWITCHING
+ 
+@@ -358,15 +366,15 @@
+ 
+   //120V 250W silicone heater into 4mm borosilicate (MendelMax 1.5+)
+   //from FOPDT model - kp=.39 Tp=405 Tdead=66, Tc set to 79.2, aggressive factor of .15 (vs .1, 1, 10)
+-  #define  DEFAULT_bedKp 10.00
+-  #define  DEFAULT_bedKi .023
+-  #define  DEFAULT_bedKd 305.4
++  #define  DEFAULT_bedKp 97.1
++  #define  DEFAULT_bedKi 1.41
++  #define  DEFAULT_bedKd 1675.16
+ 
+   //120V 250W silicone heater into 4mm borosilicate (MendelMax 1.5+)
+   //from pidautotune
+-  //#define  DEFAULT_bedKp 97.1
+-  //#define  DEFAULT_bedKi 1.41
+-  //#define  DEFAULT_bedKd 1675.16
++//  #define  DEFAULT_bedKp 97.1
++//  #define  DEFAULT_bedKi 1.41
++//  #define  DEFAULT_bedKd 1675.16
+ 
+   // FIND YOUR OWN: "M303 E-1 C8 S90" to run autotune on the bed at 90 degreesC for 8 cycles.
+ #endif // PIDTEMPBED
+@@ -383,7 +391,7 @@
+  * Note: For Bowden Extruders make this large enough to allow load/unload.
+  */
+ #define PREVENT_LENGTHY_EXTRUDE
+-#define EXTRUDE_MAXLENGTH 200
++#define EXTRUDE_MAXLENGTH 600
+ 
+ //===========================================================================
+ //======================== Thermal Runaway Protection =======================
+@@ -434,9 +442,9 @@
+ #define USE_XMIN_PLUG
+ #define USE_YMIN_PLUG
+ #define USE_ZMIN_PLUG
+-//#define USE_XMAX_PLUG
++#define USE_XMAX_PLUG
+ //#define USE_YMAX_PLUG
+-//#define USE_ZMAX_PLUG
++#define USE_ZMAX_PLUG
+
+ // Enable pullup for all endstops to prevent a floating state
+ #define ENDSTOPPULLUPS
+@@ -453,11 +461,11 @@
+ #endif
+ 
+ // Mechanical endstop with COM to ground and NC to Signal uses "false" here (most common setup).
+-#define X_MIN_ENDSTOP_INVERTING false // set to true to invert the logic of the endstop.
+-#define Y_MIN_ENDSTOP_INVERTING false // set to true to invert the logic of the endstop.
++#define X_MIN_ENDSTOP_INVERTING true // set to true to invert the logic of the endstop.
++#define Y_MIN_ENDSTOP_INVERTING true // set to true to invert the logic of the endstop.
+ #define Z_MIN_ENDSTOP_INVERTING false // set to true to invert the logic of the endstop.
+-#define X_MAX_ENDSTOP_INVERTING false // set to true to invert the logic of the endstop.
+-#define Y_MAX_ENDSTOP_INVERTING false // set to true to invert the logic of the endstop.
++#define X_MAX_ENDSTOP_INVERTING true // set to true to invert the logic of the endstop.
++#define Y_MAX_ENDSTOP_INVERTING true // set to true to invert the logic of the endstop.
+ #define Z_MAX_ENDSTOP_INVERTING false // set to true to invert the logic of the endstop.
+ #define Z_MIN_PROBE_ENDSTOP_INVERTING false // set to true to invert the logic of the probe.
+ 
+@@ -486,14 +494,16 @@
+  * Override with M92
+  *                                      X, Y, Z, E0 [, E1[, E2[, E3[, E4]]]]
+  */
+-#define DEFAULT_AXIS_STEPS_PER_UNIT   { 80, 80, 4000, 500 }
++//#define DEFAULT_AXIS_STEPS_PER_UNIT   { 80, 80, 400, 92.6}
++//#define DEFAULT_AXIS_STEPS_PER_UNIT   { 80, 100, 400, 384  }
++#define DEFAULT_AXIS_STEPS_PER_UNIT   { 80, 100, 400, 405 }
+ 
+ /**
+  * Default Max Feed Rate (mm/s)
+  * Override with M203
+  *                                      X, Y, Z, E0 [, E1[, E2[, E3[, E4]]]]
+  */
+-#define DEFAULT_MAX_FEEDRATE          { 300, 300, 5, 25 }
++#define DEFAULT_MAX_FEEDRATE          { 100, 100, 20, 80 }
+ 
+ /**
+  * Default Max Acceleration (change/s) change = mm/s
+@@ -501,7 +511,8 @@
+  * Override with M201
+  *                                      X, Y, Z, E0 [, E1[, E2[, E3[, E4]]]]
+  */
+-#define DEFAULT_MAX_ACCELERATION      { 3000, 3000, 100, 10000 }
++//#define DEFAULT_MAX_ACCELERATION      { 9000, 9000, 60, 10000 }
++#define DEFAULT_MAX_ACCELERATION      { 350, 350, 50, 30000 }
+ 
+ /**
+  * Default Acceleration (change/s) change = mm/s
+@@ -511,9 +522,13 @@
+  *   M204 R    Retract Acceleration
+  *   M204 T    Travel Acceleration
+  */
+-#define DEFAULT_ACCELERATION          3000    // X, Y, Z and E acceleration for printing moves
++//#define DEFAULT_ACCELERATION          3000    // X, Y, Z and E acceleration for printing moves
++//#define DEFAULT_RETRACT_ACCELERATION  3000    // E acceleration for retracts
++//#define DEFAULT_TRAVEL_ACCELERATION   3000    // X, Y, Z acceleration for travel (non printing) moves
++
++#define DEFAULT_ACCELERATION          350    // X, Y, Z and E acceleration for printing moves
+ #define DEFAULT_RETRACT_ACCELERATION  3000    // E acceleration for retracts
+-#define DEFAULT_TRAVEL_ACCELERATION   3000    // X, Y, Z acceleration for travel (non printing) moves
++#define DEFAULT_TRAVEL_ACCELERATION   350    // X, Y, Z acceleration for travel (non printing) moves
+ 
+ /**
+  * Default Jerk (mm/s)
+@@ -522,10 +537,10 @@
+  * When changing speed and direction, if the difference is less than the
+  * value set here, it may happen instantaneously.
+  */
+-#define DEFAULT_XJERK                 10.0
+-#define DEFAULT_YJERK                 10.0
+-#define DEFAULT_ZJERK                  0.3
+-#define DEFAULT_EJERK                  5.0
++#define DEFAULT_XJERK                 4
++#define DEFAULT_YJERK                 4
++#define DEFAULT_ZJERK                 0.4
++#define DEFAULT_EJERK                 20
+ 
+ /**
+  * S-Curve Acceleration
+@@ -554,8 +569,8 @@
+ /**
+  * Z Servo Probe, such as an endstop switch on a rotating arm.
+  */
+-//#define Z_PROBE_SERVO_NR 0   // Defaults to SERVO 0 connector.
+-//#define Z_SERVO_ANGLES {70,0}  // Z Servo Deploy and Stow angles
++#define Z_PROBE_SERVO_NR 0   // Defaults to SERVO 0 connector.
++#define Z_SERVO_ANGLES {70,0}  // Z Servo Deploy and Stow angles
+ 
+ /**
+  * The BLTouch probe uses a Hall effect sensor and emulates a servo.
+@@ -578,26 +593,26 @@
+  *      O-- FRONT --+
+  *    (0,0)
+  */
+-#define X_PROBE_OFFSET_FROM_EXTRUDER 10  // X offset: -left  +right  [of the nozzle]
+-#define Y_PROBE_OFFSET_FROM_EXTRUDER 10  // Y offset: -front +behind [the nozzle]
+-#define Z_PROBE_OFFSET_FROM_EXTRUDER 0   // Z offset: -below +above  [the nozzle]
++#define X_PROBE_OFFSET_FROM_EXTRUDER 0  // X offset: -left  +right  [of the nozzle]
++#define Y_PROBE_OFFSET_FROM_EXTRUDER 0  // Y offset: -front +behind [the nozzle]
++#define Z_PROBE_OFFSET_FROM_EXTRUDER -14   // Z offset: -below +above  [the nozzle]
+ 
+ // Certain types of probes need to stay away from edges
+ #define MIN_PROBE_EDGE 10
+ 
+ // X and Y axis travel speed (mm/m) between probes
+ #define XY_PROBE_SPEED 8000
+ 
+ // Feedrate (mm/m) for the first approach when double-probing (MULTIPLE_PROBING == 2)
+-#define Z_PROBE_SPEED_FAST HOMING_FEEDRATE_Z
++#define Z_PROBE_SPEED_FAST HOMING_FEEDRATE_Z+100
+ 
+ // Feedrate (mm/m) for the "accurate" probe of each point
+ #define Z_PROBE_SPEED_SLOW (Z_PROBE_SPEED_FAST / 2)
+ 
+ // The number of probes to perform at each point.
+ //   Set to 2 for a fast/slow probe, using the second probe result.
+ //   Set to 3 or more for slow probes, averaging the results.
+-//#define MULTIPLE_PROBING 2
++#define MULTIPLE_PROBING 2
+ 
+ /**
+  * Z probes require clearance when deploying, stowing, and moving between
+@@ -624,7 +639,7 @@
+  * disastrous consequences. Use with caution and do your homework.
+  *
+  */
+-//#define Z_MIN_PROBE_ENDSTOP
++#define Z_MIN_PROBE_ENDSTOP
+ 
+ /**
+  * Probe Type
+@@ -655,7 +670,7 @@
+  * Example: `M851 Z-5` with a CLEARANCE of 4  =>  9mm from bed to nozzle.
+  *     But: `M851 Z+1` with a CLEARANCE of 2  =>  2mm from bed to nozzle.
+  */
+-#define Z_CLEARANCE_DEPLOY_PROBE   10 // Z Clearance for Deploy/Stow
++#define Z_CLEARANCE_DEPLOY_PROBE   20 // Z Clearance for Deploy/Stow
+ #define Z_CLEARANCE_BETWEEN_PROBES  5 // Z Clearance between probe points
+ #define Z_CLEARANCE_MULTI_PROBE     5 // Z Clearance between multiple probes
+ //#define Z_AFTER_PROBING           5 // Z position after probing is done
+@@ -687,26 +702,26 @@
+ // @section machine
+ 
+ // Invert the stepper direction. Change (or reverse the motor connector) if an axis goes the wrong way.
+-#define INVERT_X_DIR false
+-#define INVERT_Y_DIR true
+-#define INVERT_Z_DIR false
++#define INVERT_X_DIR  true
++#define INVERT_Y_DIR  true
++#define INVERT_Z_DIR true
+ 
+ // @section extruder
+ 
+ // For direct drive extruder v9 set to true, for geared extruder set to false.
+ #define INVERT_E0_DIR false
+-#define INVERT_E1_DIR false
++#define INVERT_E1_DIR true
+ #define INVERT_E2_DIR false
+ #define INVERT_E3_DIR false
+ #define INVERT_E4_DIR false
+ 
+ // @section homing
+ 
+ //#define NO_MOTION_BEFORE_HOMING  // Inhibit movement until all axes have been homed
+ 
+ //#define UNKNOWN_Z_NO_RAISE // Don't raise Z (lower the bed) if Z is "unknown." For beds that fall when Z is powered off.
+ 
+-//#define Z_HOMING_HEIGHT 4  // (in mm) Minimal z height before homing (G28) for Z clearance above the bed, clamps, ...
++#define Z_HOMING_HEIGHT 4  // (in mm) Minimal z height before homing (G28) for Z clearance above the bed, clamps, ...
+                              // Be sure you have this distance over your Z_MAX_POS in case.
+ 
+ // Direction of endstops when homing; 1=MAX, -1=MIN
+@@ -717,16 +732,16 @@
+ // @section machine
+ 
+ // The size of the print bed
+-#define X_BED_SIZE 200
+-#define Y_BED_SIZE 200
++#define X_BED_SIZE 410
++#define Y_BED_SIZE 410
+ 
+ // Travel limits (mm) after homing, corresponding to endstop positions.
+-#define X_MIN_POS 0
++#define X_MIN_POS -10
+ #define Y_MIN_POS 0
+ #define Z_MIN_POS 0
+ #define X_MAX_POS X_BED_SIZE
+ #define Y_MAX_POS Y_BED_SIZE
+-#define Z_MAX_POS 200
++#define Z_MAX_POS 455
+ 
+ /**
+  * Software Endstops
+@@ -747,11 +762,11 @@
+  * Add a bed leveling sub-menu for ABL or MBL.
+  * Include a guided procedure if manual probing is enabled.
+  */
+-//#define LCD_BED_LEVELING
++#define LCD_BED_LEVELING
+ 
+ #if ENABLED(LCD_BED_LEVELING)
+   #define MBL_Z_STEP 0.025    // Step size while manually probing Z axis.
+-  #define LCD_PROBE_Z_RANGE 4 // Z Range centered on Z_MIN_POS for LCD Z adjustment
++  #define LCD_PROBE_Z_RANGE 1 // Z Range centered on Z_MIN_POS for LCD Z adjustment
+ #endif
+ 
+ // Add a menu item to move between bed corners for manual bed adjustment
+@@ -792,7 +807,7 @@
+  */
+ //#define AUTO_BED_LEVELING_3POINT
+ //#define AUTO_BED_LEVELING_LINEAR
+-//#define AUTO_BED_LEVELING_BILINEAR
++#define AUTO_BED_LEVELING_BILINEAR
+ //#define AUTO_BED_LEVELING_UBL
+ //#define MESH_BED_LEVELING
+ 
+@@ -804,14 +819,14 @@
+ #if ENABLED(AUTO_BED_LEVELING_LINEAR) || ENABLED(AUTO_BED_LEVELING_BILINEAR)
+ 
+   // Set the number of grid points per dimension.
+-  #define GRID_MAX_POINTS_X 3
++  #define GRID_MAX_POINTS_X 5
+   #define GRID_MAX_POINTS_Y GRID_MAX_POINTS_X
+ 
+   // Set the boundaries for probing (where the probe can reach).
+-  //#define LEFT_PROBE_BED_POSITION MIN_PROBE_EDGE
+-  //#define RIGHT_PROBE_BED_POSITION (X_BED_SIZE - MIN_PROBE_EDGE)
+-  //#define FRONT_PROBE_BED_POSITION MIN_PROBE_EDGE
+-  //#define BACK_PROBE_BED_POSITION (Y_BED_SIZE - MIN_PROBE_EDGE)
++  #define LEFT_PROBE_BED_POSITION 8
++  #define RIGHT_PROBE_BED_POSITION LEFT_PROBE_BED_POSITION+378
++  #define FRONT_PROBE_BED_POSITION 17
++  #define BACK_PROBE_BED_POSITION FRONT_PROBE_BED_POSITION+378
+ 
+   // Probe along the Y axis, advancing X after each column
+   //#define PROBE_Y_FIRST
+@@ -882,8 +897,8 @@
+ #endif
+ 
+ // Homing speeds (mm/m)
+-#define HOMING_FEEDRATE_XY (50*60)
+-#define HOMING_FEEDRATE_Z  (4*60)
++#define HOMING_FEEDRATE_XY (40*60)
++#define HOMING_FEEDRATE_Z  (6*60)
+ 
+ // @section calibrate
+ 
+@@ -902,7 +922,7 @@
+ // M501 - reads parameters from EEPROM (if you need reset them after you changed them temporarily).
+ // M502 - reverts to the default "factory settings".  You still need to store them in EEPROM afterwards if you want to.
+ //
+-//#define EEPROM_SETTINGS // Enable for M500 and M501 commands
++#define EEPROM_SETTINGS // Enable for M500 and M501 commands
+ //#define DISABLE_M503    // Saves ~2700 bytes of PROGMEM. Disable for release!
+ #define EEPROM_CHITCHAT   // Give feedback on EEPROM commands. Disable to save PROGMEM.
+ 
+@@ -915,8 +935,8 @@
+ // When enabled Marlin will send a busy status message to the host
+ // every couple of seconds when it can't accept commands.
+ //
+-#define HOST_KEEPALIVE_FEATURE        // Disable this if your host doesn't like keepalive messages
+-#define DEFAULT_KEEPALIVE_INTERVAL 2  // Number of seconds between "busy" messages. Set with M113.
++//#define HOST_KEEPALIVE_FEATURE        // Disable this if your host doesn't like keepalive messages
++//#define DEFAULT_KEEPALIVE_INTERVAL 2  // Number of seconds between "busy" messages. Set with M113.
+ #define BUSY_WHILE_HEATING            // Some hosts require "busy" messages even during heating
+ 
+ //
+@@ -1061,7 +1081,7 @@
+  *
+  * :{ 'en':'English', 'an':'Aragonese', 'bg':'Bulgarian', 'ca':'Catalan', 'cn':'Chinese', 'cz':'Czech', 'cz_utf8':'Czech (UTF8)', 'de':'German', 'el':'Greek', 'el-gr':'Greek (Greece)', 'es':'Spanish', 'es_utf8':'Spanish (UTF8)', 'eu':'Basque-Euskera', 'fi':'Finnish', 'fr':'French', 'fr_utf8':'French (UTF8)', 'gl':'Galician', 'hr':'Croatian', 'it':'Italian', 'kana':'Japanese', 'kana_utf8':'Japanese (UTF8)', 'ko_KR':'Korean', 'nl':'Dutch', 'pl':'Polish', 'pt':'Portuguese', 'pt-br':'Portuguese (Brazilian)', 'pt-br_utf8':'Portuguese (Brazilian UTF8)', 'pt_utf8':'Portuguese (UTF8)', 'ru':'Russian', 'sk_utf8':'Slovak (UTF8)', 'tr':'Turkish', 'uk':'Ukrainian', 'zh_CN':'Chinese (Simplified)', 'zh_TW':'Chinese (Taiwan)', 'test':'TEST' }
+  */
+-#define LCD_LANGUAGE en
++//#define LCD_LANGUAGE en
+ 
+ /**
+  * LCD Character Set
+@@ -1085,7 +1105,7 @@
+  *
+  * :['JAPANESE', 'WESTERN', 'CYRILLIC']
+  */
+-#define DISPLAY_CHARSET_HD44780 JAPANESE
++//#define DISPLAY_CHARSET_HD44780 JAPANESE
+ 
+ /**
+  * SD CARD
+@@ -1106,7 +1126,7 @@
+  * you must uncomment the following option or it won't work.
+  *
+  */
+-//#define SDSUPPORT
++#define SDSUPPORT
+ 
+ /**
+  * SD CARD: SPI SPEED
+@@ -1415,7 +1437,7 @@
+  * Set this manually if there are extra servos needing manual control.
+  * Leave undefined or set to 0 to entirely disable the servo subsystem.
+  */
+-//#define NUM_SERVOS 3 // Servo index starts with 0 for M280 command
++#define NUM_SERVOS 1 // Servo index starts with 0 for M280 command
+ 
+ // Delay (in milliseconds) before the next move will start, to give the servo time to reach its target angle.
+ // 300ms is a good value but you can try less delay.
+@@ -1441,7 +1463,7 @@
+ #define EXTRUDERS 1
+ 
+ // Generally expected filament diameter (1.75, 2.85, 3.0, ...). Used for Volumetric, Filament Width Sensor, etc.
+-#define DEFAULT_NOMINAL_FILAMENT_DIA 3.0
++#define DEFAULT_NOMINAL_FILAMENT_DIA 1.75
+ 
+ // For Cyclops or any "multi-extruder" that shares a single nozzle.
+ //#define SINGLENOZZLE
+diff --git a/Marlin/Configuration_adv.h b/Marlin/Configuration_adv.h
+similarity index 97%
+index 41fd8b4..8d7e34c 100644
+--- a/Marlin/Configuration_adv.h
++++ b/Marlin/Configuration_adv.h
+@@ -74,8 +74,8 @@
+  * THERMAL_PROTECTION_HYSTERESIS and/or THERMAL_PROTECTION_PERIOD
+  */
+ #if ENABLED(THERMAL_PROTECTION_HOTENDS)
+-  #define THERMAL_PROTECTION_PERIOD 40        // Seconds
+-  #define THERMAL_PROTECTION_HYSTERESIS 4     // Degrees Celsius
++  #define THERMAL_PROTECTION_PERIOD 250        // Seconds
++  #define THERMAL_PROTECTION_HYSTERESIS 45     // Degrees Celsius
+ 
+  /**
+   * Whenever an M104, M109, or M303 increases the target temperature, the
+@@ -86,21 +86,21 @@
+    * and/or decrease WATCH_TEMP_INCREASE. WATCH_TEMP_INCREASE should not be set
+    * below 2.
+    */
+-  #define WATCH_TEMP_PERIOD 20                // Seconds
+-  #define WATCH_TEMP_INCREASE 2               // Degrees Celsius
++  #define WATCH_TEMP_PERIOD 35                // Seconds
++  #define WATCH_TEMP_INCREASE 10              // Degrees Celsius
+ #endif
+ 
+ /**
+  * Thermal Protection parameters for the bed are just as above for hotends.
+  */
+ #if ENABLED(THERMAL_PROTECTION_BED)
+-  #define THERMAL_PROTECTION_BED_PERIOD 20    // Seconds
+-  #define THERMAL_PROTECTION_BED_HYSTERESIS 2 // Degrees Celsius
++  #define THERMAL_PROTECTION_BED_PERIOD 600    // Seconds
++  #define THERMAL_PROTECTION_BED_HYSTERESIS 10 // Degrees Celsius
+ 
+   /**
+    * As described above, except for the bed (M140/M190/M303).
+    */
+-  #define WATCH_BED_TEMP_PERIOD 60                // Seconds
++  #define WATCH_BED_TEMP_PERIOD 400               // Seconds
+   #define WATCH_BED_TEMP_INCREASE 2               // Degrees Celsius
+ #endif
+ 
+@@ -157,7 +157,7 @@
+ 
+ // The number of consecutive low temperature errors that can occur
+ // before a min_temp_error is triggered. (Shouldn't be more than 10.)
+-//#define MAX_CONSECUTIVE_LOW_TEMPERATURE_ERROR_ALLOWED 0
++#define MAX_CONSECUTIVE_LOW_TEMPERATURE_ERROR_ALLOWED 3
+ 
+ // The number of milliseconds a hotend will preheat before starting to check
+ // the temperature. This value should NOT be set to the time it takes the
+@@ -203,6 +204,10 @@
+ //#define FAN_MIN_PWM 50
+ //#define FAN_MAX_PWM 128
+ 
++//Max model cooling fan present setting  FOR I3 MEGA,the max value is 1
++
++#define MAX_MODEL_COOLING_PRECENT_VALUE 1 // the max present is 100%
++
+ // @section extruder
+ 
+ /**
+@@ -268,11 +276,11 @@
+   #endif
+ #endif
+ 
+-//#define Z_DUAL_STEPPER_DRIVERS
++#define Z_DUAL_STEPPER_DRIVERS
+ #if ENABLED(Z_DUAL_STEPPER_DRIVERS)
+-  //#define Z_DUAL_ENDSTOPS
++  #define Z_DUAL_ENDSTOPS
+  #if ENABLED(Z_DUAL_ENDSTOPS)
+-    #define Z2_USE_ENDSTOP _XMAX_
++    #define Z2_USE_ENDSTOP _ZMAX_
+     #define Z_DUAL_ENDSTOPS_ADJUSTMENT  0
+   #endif
+ #endif
+@@ -333,8 +341,8 @@
+ // Homing hits each endstop, retracts by these distances, then does a slower bump.
+ #define X_HOME_BUMP_MM 5
+ #define Y_HOME_BUMP_MM 5
+-#define Z_HOME_BUMP_MM 2
+-#define HOMING_BUMP_DIVISOR { 2, 2, 4 }  // Re-Bump Speed Divisor (Divides the Homing Feedrate)
++#define Z_HOME_BUMP_MM 8
++#define HOMING_BUMP_DIVISOR { 4, 4, 4 }  // Re-Bump Speed Divisor (Divides the Homing Feedrate)
+ //#define QUICK_HOME                     // If homing includes X and Y, do a diagonal move initially
+ 
+ // When G28 is called, this option will make Y home before X
+@@ -368,7 +376,7 @@
+ // @section lcd
+ 
+ #if ENABLED(ULTIPANEL)
+-  #define MANUAL_FEEDRATE {50*60, 50*60, 4*60, 60} // Feedrates for manual moves along X, Y, Z, E from panel
++  #define MANUAL_FEEDRATE {50*60, 50*60, 10*60, 60} // Feedrates for manual moves along X, Y, Z, E from panel
+   #define ULTIPANEL_FEEDMULTIPLY  // Comment to disable setting feedrate multiplier via encoder
+ #endif
+ 
+@@ -432,7 +440,7 @@
+   // as SD_DETECT_PIN in your board's pins definitions.
+   // This setting should be disabled unless you are using a push button, pulling the pin to ground.
+   // Note: This is always disabled for ULTIPANEL (except ELB_FULL_GRAPHIC_CONTROLLER).
+-  #define SD_DETECT_INVERTED
++  //#define SD_DETECT_INVERTED
+ 
+   #define SD_FINISHED_STEPPERRELEASE true          // Disable steppers when SD Print is finished
+   #define SD_FINISHED_RELEASECOMMAND "M84 X Y Z E" // You might want to keep the z enabled so your bed stays in place.
+@@ -485,7 +493,7 @@
+ 
+ // The hardware watchdog should reset the microcontroller disabling all outputs,
+ // in case the firmware gets stuck and doesn't do temperature regulation.
+-#define USE_WATCHDOG
++//#define USE_WATCHDOG
+ 
+ #if ENABLED(USE_WATCHDOG)
+   // If you have a watchdog reboot in an ArduinoMega2560 then the device will hang forever, as a watchdog reset will leave the watchdog on.
+@@ -633,6 +641,9 @@
+ #define MAX_CMD_SIZE 96
+ #define BUFSIZE 4
+ 
++#define TFT_MAX_CMD_SIZE 96
++#define TFTBUFSIZE 4
++
+ // Transmission to Host Buffer Size
+ // To save 386 bytes of PROGMEM (and TX_BUFFER_SIZE+3 bytes of RAM) set to 0.
+ // To buffer a simple "ok" you need 4 bytes.
+diff --git a/Marlin/Marlin.h b/Marlin/Marlin.h
+similarity index 99%
+index 0c3511a..baaefdf 100644
+--- a/Marlin/Marlin.h
++++ b/Marlin/Marlin.h
+@@ -40,6 +40,10 @@
+ #include "utility.h"
+ #include "serial.h"
+ 
++#ifdef VENDOR_CODE
++  #include "VendorCode.h"
++#endif
++
+ void idle(
+   #if ENABLED(ADVANCED_PAUSE_FEATURE)
+     bool no_stepper_sleep = false  // pass true to keep steppers from disabling on timeout
+diff --git a/Marlin/MarlinConfig.h b/Marlin/MarlinConfig.h
+similarity index 92%
+index 64e0bac..d26bc9f 100644
+--- a/Marlin/MarlinConfig.h
++++ b/Marlin/MarlinConfig.h
+@@ -32,9 +32,10 @@
+ #include "Configuration_adv.h"
+ 
+ #if USE_MARLINSERIAL
+-  #define HardwareSerial_h // trick to disable the standard HWserial
++  //#define HardwareSerial_h // trick to disable the standard HWserial
+ #endif
+ 
++#include "MyHardwareSerial.h"
+ #include "types.h"
+ #include "HAL.h"
+ #include "pins.h"
+diff --git a/Marlin/Marlin_main.cpp b/Marlin/Marlin_main.cpp
+similarity index 96%
+index baa8c2f..b88994f 100644
+--- a/Marlin/Marlin_main.cpp
++++ b/Marlin/Marlin_main.cpp
+@@ -232,6 +232,7 @@
+ #include "duration_t.h"
+ #include "types.h"
+ #include "parser.h"
++#include "music.h"
+ 
+ #if ENABLED(AUTO_POWER_CONTROL)
+   #include "power.h"
+@@ -332,7 +333,11 @@ uint8_t axis_homed, axis_known_position; // = 0
+  * sending commands to Marlin, and lines will be checked for sequentiality.
+  * M110 N<int> sets the current line number.
+  */
++#ifdef VENDOR_CODE
++long gcode_N, gcode_LastN, Stopped_gcode_LastN = 0;
++#else //#ifndef VENDOR_CODE
+ static long gcode_N, gcode_LastN, Stopped_gcode_LastN = 0;
++#endif //#ifdef VENDOR_CODE else
+ 
+ /**
+  * GCode Command Queue
+@@ -1104,6 +1115,9 @@ inline void get_serial_commands() {
+     static bool stop_buffering = false,
+                 sd_comment_mode = false;
+ 
++#ifdef VENDOR_CODE
++    char i,j;
++#endif //#ifdef VENDOR_CODE
+     if (!card.sdprinting) return;
+ 
+     /**
+@@ -1117,7 +1131,11 @@ inline void get_serial_commands() {
+ 
+     uint16_t sd_count = 0;
+     bool card_eof = card.eof();
++#ifdef VENDOR_CODE
++    while (commands_in_queue < BUFSIZE && !card_eof && !stop_buffering&&!seekdataflag) {
++#else //#ifndef VENDOR_CODE
+     while (commands_in_queue < BUFSIZE && !card_eof && !stop_buffering) {
++#endif //#ifdef VENDOR_CODE else
+       const int16_t n = card.get();
+       char sd_char = (char)n;
+       card_eof = card.eof();
+@@ -1133,6 +1151,9 @@ inline void get_serial_commands() {
+         else if (n == -1) {
+           SERIAL_ERROR_START();
+           SERIAL_ECHOLNPGM(MSG_SD_ERR_READ);
++#ifdef VENDOR_CODE
++          errorFlag=1;
++#endif //#ifdef VENDOR_CODE
+         }
+         if (sd_char == '#') stop_buffering = true;
+ 
+@@ -1154,8 +1175,35 @@ inline void get_serial_commands() {
+       else {
+         if (sd_char == ';') sd_comment_mode = true;
+         if (!sd_comment_mode) command_queue[cmd_queue_index_w][sd_count++] = sd_char;
++#ifdef VENDOR_CODE
++        if(sd_char=='G'){last_sd_position[0]=card.GetLastSDpos();}
++#endif //#ifdef VENDOR_CODE
+       }
+     }
++#ifdef VENDOR_CODE
++    if (seekdataflag)
++    {
++      for (i = 0; i < MAX_CMD_SIZE; i++) //clean buf
++      {
++        for (j = 0; j < BUFSIZE; j++)
++        {
++          command_queue[j][i] = 0;
++        }
++      }
++      destination[E_AXIS] = last_position[0];
++      current_position[E_AXIS] = last_position[0];
++      planner.set_e_position_mm(last_position[0]);
++      planner.buffer_line(X_MIN_POS, Y_MIN_POS, last_position[1], last_position[0], feedrate_percentage, active_extruder);
++      destination[X_AXIS] = last_position[3]; //SET A NEW ORIGNAL COORDINATE
++      destination[Y_AXIS] = last_position[2];
++      if (current_position[Z_AXIS] > 0.3)
++        current_position[Z_AXIS] = last_position[1] - 0.1;
++      else
++        current_position[Z_AXIS] = last_position[1];
++      feedrate_mm_s = MMM_TO_MMS(2000.0);
++      seekdataflag = 0;
++    }
++#endif // #ifdef VENDOR_CODE
+   }
+ 
+   #if ENABLED(POWER_LOSS_RECOVERY)
+@@ -2953,6 +3001,16 @@ inline void gcode_G0_G1(
+       }
+     #endif // FWRETRACT
+ 
++#ifdef VENDOR_CODE
++#if defined(OutageTest)
++      if ((ResumingFlag == 1) && FlagResumFromOutage)
++      {
++        if (destination[E_AXIS] < 20)
++          return;
++      }
++#endif
++#endif //#ifdef VENDOR_CODE
++
+     #if IS_SCARA
+       fast_move ? prepare_uninterpolated_move_to_destination() : prepare_move_to_destination();
+     #else
+@@ -3053,7 +3111,7 @@ inline void gcode_G4() {
+   dwell(dwell_ms);
+ }
+ 
+-#if ENABLED(BEZIER_CURVE_SUPPORT)
++//#if ENABLED(BEZIER_CURVE_SUPPORT)
+ 
+   /**
+    * Parameters interpreted according to:
+@@ -3066,6 +3124,42 @@ inline void gcode_G4() {
+    * G5: Cubic B-spline
+    */
+   inline void gcode_G5() {
++#ifdef VENDOR_CODE
++#ifdef OutageTest
++    WRITE(OUTAGECON_PIN, HIGH);
++    if (sdcardstartprintingflag)
++    {
++      NEW_SERIAL_PROTOCOLPGM("J04");
++      TFT_SERIAL_ENTER();
++    }
++    if (FlagResumFromOutage)
++    {
++      OutageRead();
++      //		  if(MYfeedrate_mm_s==0)MYfeedrate_mm_s=2000;
++      card.setIndex(last_sd_position[0]);
++
++      seekdataflag = 1;
++      ResumingFlag = 1;
++      FlagResumFromOutage = 0;
++      fanSpeeds[0] = Max_ModelCooling; //OPEN FAN0
++      //    fanSpeeds[0]=179;   //OPEN FAN0
++    }
++    if (1 == READ(OUTAGETEST_PIN))
++    {
++      PowerTestFlag = true;
++      //      SERIAL_ECHOLNPGM("G5:PowerTestFlag=TRUE");
++      attachInterrupt(PowerInt, PowerKill, CHANGE); //INITIANAL SET
++    }
++    /*
++      SERIAL_ECHOPAIR("detection", NEW_zprobe_zoffset);
++      SERIAL_ECHOPAIR(" MYx",last_position[3]);
++    SERIAL_ECHOPAIR(" MYy",last_position[2]);
++    SERIAL_ECHOPAIR(" MYz",last_position[1]);
++    SERIAL_ECHOPAIR(" MYe",last_position[0]);
++    SERIAL_ECHOPAIR(" SD",last_sd_position[0]);
++    */
++#endif //#ifdef OutageTest
++#else //#ifdef VENDOR_CODE
+     #if ENABLED(NO_MOTION_BEFORE_HOMING)
+       if (axis_unhomed_error()) return;
+     #endif
+@@ -3079,9 +3173,10 @@ inline void gcode_G4() {
+ 
+       plan_cubic_move(destination, offset);
+     }
++	#endif //#ifdef VENDOR_CODE else
+   }
+ 
+-#endif // BEZIER_CURVE_SUPPORT
++//#endif // BEZIER_CURVE_SUPPORT
+ 
+ #if ENABLED(UNREGISTERED_MOVE_SUPPORT)
+ 
+@@ -3634,9 +3734,30 @@ inline void gcode_G28() {
+     tool_change(old_tool_index, 0, NO_FETCH);
+   #endif
+ 
++#ifndef VENDOR_CODE
+  lcd_refresh();
++#endif //#ifdef VENDOR_CODE
+ 
++#ifdef VENDOR_CODE
++  #if HAS_ABL
++    set_bed_leveling_enabled(true);  // (re)enable bed leveling if the grid is valid
++  #endif
++#endif //#ifdef VENDOR_CODE
++
+  report_current_position();
++
++#ifdef VENDOR_CODE
++  //  if(AssistLeveTestflag) HomeFlag=1;
++  if ((Manual_Leveling == 0xaa) && (!card.sdprinting) && (homeZ || home_all_axis))
++  {
++    do_blocking_move_to(current_position[X_AXIS], current_position[Y_AXIS], 0.001, 2);
++    disable_x();
++    //   disable_y();
++    Y_ENABLE_WRITE(!Y_ENABLE_ON);
++    current_position[Z_AXIS] = 0.001;
++    PointTestFlag = true;
++  }
++#endif //#ifdef VENDOR_CODE
+ 
+   #if ENABLED(NANODLP_Z_SYNC)
+     #if ENABLED(NANODLP_ALL_AXIS)
+@@ -4192,6 +4311,15 @@ inline void gcode_G28() {
+         if (!dryrun) extrapolate_unprobed_bed_level();
+         print_bilinear_leveling_grid();
+ 
++#ifdef VENDOR_CODE
++      SaveAutoBedGridData();
++      NEW_SERIAL_PROTOCOLPGM("J25");//  auto leveling DONE
++      TFT_SERIAL_ENTER();
++      disable_x();
++      disable_y();
++      disable_z();
++#endif //#ifdef VENDOR_CODE
++
+        refresh_bed_level();
+
+        #if ENABLED(ABL_BILINEAR_SUBDIVISION)
+@@ -5310,6 +5438,10 @@ inline void gcode_M104() {
+ inline void gcode_M105() {
+   if (get_target_extruder_from_command(105)) return;
+ 
++  #ifdef VENDOR_CODE
++  if(!card.sdprinting) UsbOnLineFlag=true; // if reveive m105 from pc,meant usb on line
++  #endif //#ifdef VENDOR_CODE
++
+   #if HAS_TEMP_SENSOR
+     SERIAL_PROTOCOLPGM(MSG_OK);
+     thermalManager.print_heaterstates();
+@@ -5443,6 +5581,10 @@ inline void gcode_M109() {
+           lcd_setstatusPGM(heating ? PSTR("E " MSG_HEATING) : PSTR("E " MSG_COOLING));
+         #endif
+     #endif
++    #ifdef TFTmodel
++    NEW_SERIAL_PROTOCOLPGM("J06");//heating
++    TFT_SERIAL_ENTER();
++    #endif
+   }
+ 
+   #if ENABLED(AUTOTEMP)
+@@ -5494,6 +5636,9 @@ inline void gcode_M109() {
+     }
+ 
+     idle();
++#ifdef VENDOR_CODE
++ //   TFT_Commond_Scan();
++#endif //#ifdef VENDOR_CODE
+     reset_stepper_timeout(); // Keep steppers powered
+ 
+     const float temp = thermalManager.degHotend(target_extruder);
+@@ -5528,6 +5673,21 @@ inline void gcode_M109() {
+     #endif
+   }
+ 
++   #ifdef TFTmodel
++    NEW_SERIAL_PROTOCOLPGM("J07");//hotend heating done
++    TFT_SERIAL_ENTER();
++    if(card.sdprinting)
++    {
++        NEW_SERIAL_PROTOCOLPGM("J04");//printing from sd card
++        TFT_SERIAL_ENTER();
++    }
++    else if(USBConnectFlag)
++    {
++        NEW_SERIAL_PROTOCOLPGM("J03");//usb connectting
++        TFT_SERIAL_ENTER();
++    }
++    #endif
++
+   #if DISABLED(BUSY_WHILE_HEATING)
+     KEEPALIVE_STATE(IN_HANDLER);
+   #endif
+@@ -5547,6 +5707,11 @@ inline void gcode_M109() {
+   inline void gcode_M190() {
+     if (DEBUGGING(DRYRUN)) return;
+ 
++    #ifdef TFTmodel
++    NEW_SERIAL_PROTOCOLPGM("J08");//hotbed heating
++    TFT_SERIAL_ENTER();
++    #endif
++
+     const bool no_wait_for_cooling = parser.seenval('S');
+     if (no_wait_for_cooling || parser.seenval('R')) {
+       thermalManager.setTargetBed(parser.value_celsius());
+@@ -5645,7 +5810,18 @@ inline void gcode_M109() {
+ 
+     } while (wait_for_heatup && TEMP_BED_CONDITIONS);
+ 
++#ifdef VENDOR_CODE
++    if (wait_for_heatup)
++    {
++      #ifdef TFTmodel
++      NEW_SERIAL_PROTOCOLPGM("J09"); //hotbed heating
++      TFT_SERIAL_ENTER();
++      #endif
++      LCD_MESSAGEPGM(MSG_BED_DONE);
++    }
++#else  //#ifndef VENDOR_CODE
+     if (wait_for_heatup) lcd_reset_status();
++#endif //#ifdef VENDOR_CODE else
+     #if DISABLED(BUSY_WHILE_HEATING)
+       KEEPALIVE_STATE(IN_HANDLER);
+     #endif
+@@ -5818,7 +5994,11 @@ inline void gcode_M140() {
+     #endif
+ 
+     #if ENABLED(ULTIPANEL)
++#ifndef VENDOR_CODE
+       lcd_reset_status();
++#else //#ifdef VENDOR_CODE
++      TFT_Commond_Scan();
++#endif //#ifndef VENDOR_CODE else
+     #endif
+   }
+ 
+@@ -5851,6 +6031,9 @@ inline void gcode_M81() {
+ 
+   #if ENABLED(ULTIPANEL)
+     LCD_MESSAGEPGM(MACHINE_NAME " " MSG_OFF ".");
++#ifdef VENDOR_CODE
++    TFT_Commond_Scan();
++#endif //#ifdef VENDOR_CODE else
+   #endif
+ }
+ 
+@@ -5973,6 +6157,7 @@ inline void gcode_M114() { report_current_position(); }
+ #endif
+ 
+ inline void gcode_M115() {
++#ifndef VENDOR_CODE
+   SERIAL_PROTOCOLLNPGM(MSG_M115_REPORT);
+ 
+   #if ENABLED(EXTENDED_CAPABILITIES_REPORT)
+@@ -6030,6 +6215,7 @@ inline void gcode_M115() {
+     );
+ 
+   #endif // EXTENDED_CAPABILITIES_REPORT
++#endif //#ifndef VENDOR_CODE
+ }
+ 
+ /**
+@@ -6590,13 +6776,34 @@ inline void gcode_M226() {
+    * M300: Play beep sound S<frequency Hz> P<duration ms>
+    */
+   inline void gcode_M300() {
+-    uint16_t const frequency = parser.ushortval('S', 260);
+-    uint16_t duration = parser.ushortval('P', 1000);
++#ifdef VENDOR_CODE
++      int beepS = code_seen('S') ? code_value_int() : 110;
++      int beepP = code_seen('P') ? code_value_int() : 1000;
++      if (beepS > 0)
++      {
++        #if BEEPER_PIN > 0
++          tone(BEEPER_PIN, beepS);
++          delay(beepP);
++          noTone(BEEPER_PIN);
++        #elif defined(ULTRALCD)
++      lcd_buzz(beepS, beepP);
++    #elif defined(LCD_USE_I2C_BUZZER)
++      lcd_buzz(beepP, beepS);
++        #endif
++      }
++      else
++      {
++        delay(beepP);
++      }
++#else //#ifndef VENDOR_CODE
++    uint16_t const frequency = parser.ushortval('S', 260);
++    uint16_t duration = parser.ushortval('P', 1000);
+ 
+     // Limits the tone duration to 0-5 seconds.
+     NOMORE(duration, 5000);
+ 
+     BUZZ(duration, frequency);
++#endif //#ifdef VENDOR_CODE else
+   }
+ 
+ #endif // HAS_BUZZER
+@@ -7127,7 +7335,18 @@ inline void gcode_M503() {
+     if (parser.seenval('Z')) {
+       const float value = parser.value_linear_units();
+       if (WITHIN(value, Z_PROBE_OFFSET_RANGE_MIN, Z_PROBE_OFFSET_RANGE_MAX))
++#ifdef VENDOR_CODE
++      {
++          float height_difference =(value-zprobe_zoffset);
++        for (uint8_t x = 0; x < ABL_GRID_POINTS_X; x++)
++             for (uint8_t y = 0; y < ABL_GRID_POINTS_Y; y++)
++               bed_level_grid[x][y] += height_difference;
+         zprobe_zoffset = value;
++        SaveAutoBedGridData();
++      }
++#else //#ifndef VENDOR_CODE
++        zprobe_zoffset = value;
++#endif //#ifdef VENDOR_CODE else
+      else {
+        SERIAL_ERROR_START();
+        SERIAL_ERRORLNPGM("?Z out of range (" STRINGIFY(Z_PROBE_OFFSET_RANGE_MIN) " to " STRINGIFY(Z_PROBE_OFFSET_RANGE_MAX) ")");
+@@ -8028,9 +8245,13 @@ void process_next_command() {
+ 
+       case 4: gcode_G4(); break;                                  // G4: Dwell
+ 
++#ifdef VENDOR_CODE
++        case 5: gcode_G5(); break;                                // G5: Cubic B_spline
++#else //#ifndef VENDOR_CODE
+      #if ENABLED(BEZIER_CURVE_SUPPORT)
+        case 5: gcode_G5(); break;                                // G5: Cubic B_spline
+      #endif
++#endif //#ifdef VENDOR_CODE else
+
+      #if ENABLED(UNREGISTERED_MOVE_SUPPORT)
+        case 6: gcode_G6(); break;                                // G6: Direct stepper move
+@@ -8164,7 +8388,11 @@ void process_next_command() {
+       #endif
+ 
+      #if HAS_MESH
++#ifndef VENDOR_CODE
+         case 42: gcode_G42(); break;                              // G42: Move to mesh point
++#else //#ifndef VENDOR_CODE
++        case 42: break;                                           // G42: Move to mesh point
++#endif //#ifdef VENDOR_CODE else
+      #endif
+
+      case 90: relative_mode = false; break;                      // G90: Absolute coordinates
+@@ -8653,7 +8881,56 @@ void process_next_command() {
+        #endif
+      #endif
+
++#ifndef VENDOR_CODE
+       case 999: gcode_M999(); break;                              // M999: Restart after being Stopped
++#else //#ifdef VENDOR_CODE
++#ifdef AUTO_BED_LEVELING_BILINEAR
++      case 999: gcode_M999(); break;                              // M999: Restart after being Stopped
++      case 1000:
++      { //RESET AUTOBED DATE
++        float temp;
++        if (code_seen('S'))
++          temp = code_value_float();
++        else
++          temp = -3.5;
++        for (uint8_t x = 0; x < ABL_GRID_POINTS_X; x++)
++        {
++          for (uint8_t y = 0; y < ABL_GRID_POINTS_Y; y++)
++            bed_level_grid[x][y] = temp;
++        };
++        bilinear_grid_spacing[0] = int((RIGHT_PROBE_BED_POSITION - LEFT_PROBE_BED_POSITION) / (ABL_GRID_POINTS_X - 1));
++        bilinear_grid_spacing[1] = int((BACK_PROBE_BED_POSITION - FRONT_PROBE_BED_POSITION) / (ABL_GRID_POINTS_Y - 1));
++        bilinear_start[0] = LEFT_PROBE_BED_POSITION;
++        bilinear_start[1] = FRONT_PROBE_BED_POSITION;
++        zprobe_zoffset = Z_PROBE_OFFSET_FROM_EXTRUDER;
++        NEW_zprobe_zoffset = Z_PROBE_OFFSET_FROM_EXTRUDER;
++        Manual_Leveling = 0xaa;
++        SaveWay2Leveling();
++        SaveAutoBedGridData();
++        SERIAL_ECHOPGM("Done, Manual Leveling was actived!");
++      }
++      break;
++      case 1001:
++      {
++        for (uint8_t x = 0; x < ABL_GRID_POINTS_X; x++)
++        {
++          for (uint8_t y = 0; y < ABL_GRID_POINTS_Y; y++)
++            bed_level_grid[x][y] = -0.1;
++        };
++        bilinear_grid_spacing[0] = int((RIGHT_PROBE_BED_POSITION - LEFT_PROBE_BED_POSITION) / (ABL_GRID_POINTS_X - 1));
++        bilinear_grid_spacing[1] = int((BACK_PROBE_BED_POSITION - FRONT_PROBE_BED_POSITION) / (ABL_GRID_POINTS_Y - 1));
++        bilinear_start[0] = LEFT_PROBE_BED_POSITION;
++        bilinear_start[1] = FRONT_PROBE_BED_POSITION;
++        zprobe_zoffset = Z_PROBE_OFFSET_FROM_EXTRUDER;
++        NEW_zprobe_zoffset = Z_PROBE_OFFSET_FROM_EXTRUDER;
++        Manual_Leveling = 0x55;
++        SaveWay2Leveling();
++        SaveAutoBedGridData();
++        SERIAL_ECHOPGM("Done, Auto Leveling was actived!");
++      }
++      break;
++   #endif
++#endif //#ifndef VENDOR_CODE else
+
+      default: parser.unknown_command_error();
+    }
+@@ -9912,6 +10191,11 @@ void disable_all_steppers() {
+  */
+ void manage_inactivity(const bool ignore_stepper_queue/*=false*/) {
+ 
++#ifdef VENDOR_CODE
++  FilamentScan();
++  Fan2Scan();
++#endif //#ifdef VENDOR_CODE
++
+   #if ENABLED(FILAMENT_RUNOUT_SENSOR)
+     runout.run();
+   #endif
+@@ -9923,7 +10207,11 @@ void manage_inactivity(bool ignore_stepper_queue/*=false*/) {
+   if (stepper_inactive_time) {
+     if (planner.has_blocks_queued())
+       previous_move_ms = ms; // reset_stepper_timeout to keep steppers powered
++#ifdef VENDOR_CODE
++    else if (MOVE_AWAY_TEST && !ignore_stepper_queue && ELAPSED(ms, previous_move_ms + stepper_inactive_time) && !TFTresumingflag && !PointTestFlag) {
++#else //#ifndef VENDOR_CODE
+     else if (MOVE_AWAY_TEST && !ignore_stepper_queue && ELAPSED(ms, previous_move_ms + stepper_inactive_time)) {
++#endif //#ifdef VENDOR_CODE else
+       #if ENABLED(DISABLE_INACTIVE_X)
+         disable_X();
+       #endif
+@@ -10082,6 +10371,9 @@ void manage_inactivity(bool ignore_stepper_queue/*=false*/) {
+     monitor_tmc_driver();
+   #endif
+ 
++#ifdef VENDOR_CODE
++  if(!TFTresumingflag&&!PointTestFlag)
++#endif //#ifdef VENDOR_CODE
+   planner.check_axes_activity();
+ }
+ 
+@@ -10093,9 +10385,20 @@ void idle(
+     max7219.idle_tasks();
+   #endif
+ 
++#ifdef VENDOR_CODE
++  TFT_Commond_Scan();
++  static unsigned int counter = 0;
++  counter++;
++  if (counter % 1000 == 0)
++  {
++    counter = 0;
++    SDCARD_UPDATA();
++  }
++#else //#ifndef VENDOR_CODE
+   lcd_update();
+ 
+   host_keepalive();
++#endif //#ifdef VENDOR_CODE else
+
+  manage_inactivity(
+    #if ENABLED(ADVANCED_PAUSE_FEATURE)
+@@ -10134,7 +10437,9 @@ void kill(const char* lcd_msg) {
+   #endif
+ 
+   _delay_ms(600); // Wait a short time (allows messages to get out before shutting down.
++#ifndef VENDOR_CODE
+   cli(); // Stop interrupts
++#endif //#ifdef VENDOR_CODE
+ 
+   _delay_ms(250); //Wait to ensure all interrupts routines stopped
+   thermalManager.disable_all_heaters(); //turn off heaters again
+@@ -10144,6 +10449,10 @@ void kill(const char* lcd_msg) {
+ 
+   suicide();
+   while (1) {
++#ifdef VENDOR_CODE
++    errorFlag=6;
++    TFT_Commond_Scan();
++#endif //#ifdef VENDOR_CODE
+     #if ENABLED(USE_WATCHDOG)
+       watchdog_reset();
+     #endif
+@@ -10207,6 +10516,19 @@ void setup() {
+   SERIAL_PROTOCOLLNPGM("start");
+   SERIAL_ECHO_START();
+ 
++#ifdef VENDOR_CODE
++  #ifdef TFTmodel
++  NewSerial.begin(115200);
++  //TFT_SERIAL_START();
++  TFT_SERIAL_ENTER();
++  NEW_SERIAL_PROTOCOLPGM("J17"); //j17 main board reset
++  TFT_SERIAL_ENTER();
++  delay(10);
++  NEW_SERIAL_PROTOCOLPGM("J12"); //  READY
++  TFT_SERIAL_ENTER();
++  #endif
++#endif //#ifdef VENDOR_CODE
++
+   // Prepare communication for TMC drivers
+   #if HAS_DRIVER(TMC2130)
+     tmc_init_cs_pins();
+@@ -10216,7 +10538,11 @@ void setup() {
+   if (mcu & 32) SERIAL_ECHOLNPGM(MSG_SOFTWARE_RESET);
+   MCUSR = 0;
+ 
++#ifdef VENDOR_CODE
++  SERIAL_ECHOLNPGM(MSG_MY_VERSION);
++#else //#ifndef VENDOR_CODE
+   SERIAL_ECHOPGM(MSG_MARLIN);
++#endif //#ifdef VENDOR_CODE else
+   SERIAL_CHAR(' ');
+   SERIAL_ECHOLNPGM(SHORT_BUILD_VERSION);
+   SERIAL_EOL();
+@@ -10240,6 +10566,17 @@ void setup() {
+   // This also updates variables in the planner, elsewhere
+   (void)settings.load();
+ 
++#ifdef VENDOR_CODE
++  #ifdef TFTmodel
++  #ifdef AUTO_BED_LEVELING_BILINEAR
++  setupMyZoffset();
++  delay(10);
++  ReadAutoBedGridData();
++  #endif //#ifdef AUTO_BED_LEVELING_BILINEAR
++  setup_OutageTestPin();
++  #endif //#ifdef TFTmodel
++#endif //#ifdef VENDOR_CODE
++
+   #if HAS_M206_COMMAND
+     // Initialize current position based on home_offset
+     COPY(current_position, home_offset);
+@@ -10253,7 +10590,9 @@ void setup() {
+ 
+   stepper.init();           // Init stepper. This enables interrupts!
+ 
++#ifndef VENDOR_CODE
+   servo_init();             // Initialize all servos, stow servo probe
++#endif //#ifdef VENDOR_CODE
+ 
+   #if HAS_PHOTOGRAPH
+     OUT_WRITE(PHOTOGRAPH_PIN, LOW);
+@@ -10303,8 +10642,13 @@ void setup() {
+     fanmux_init();
+   #endif
+ 
++#ifdef VENDOR_CODE
++  _delay_ms(20);
++  PowerOnMusic();
++#else //#ifndef VENDOR_CODE
+   lcd_init();
+   lcd_reset_status();
++#endif //#ifdef VENDOR_CODE else
+ 
+  #if ENABLED(SHOW_BOOTSCREEN)
+    lcd_bootscreen();
+@@ -10332,6 +10677,14 @@ void setup() {
+   #if ENABLED(SDSUPPORT) && !(ENABLED(ULTRA_LCD) && PIN_EXISTS(SD_DETECT))
+     card.beginautostart();
+   #endif
++
++#ifdef VENDOR_CODE
++  SetUpFAN2_PIN();
++//  setuplevelTest();
++  setupSDCARD();
++  SetupFilament();
++   _delay_ms(10);  // wait 1sec to display the splash screen
++#endif //#ifdef VENDOR_CODE
+ }
+ 
+ /**
+@@ -10345,6 +10698,12 @@ void setup() {
+  *  - Call LCD update
+  */
+ void loop() {
++
++#ifdef VENDOR_CODE
++  if(pauseCMDsendflag)pauseCMDsend();//when pause,i need rase z axis,but if i use enquecommand_P,it maybe lose cmd,very dangerous,so i need sent cmd one by one
++//  if(PointTestFlag||Z_offset_debug_flag)MY_AUTOlevelAlarm();
++#endif //#ifdef VENDOR_CODE
++
+ 
+   #if ENABLED(SDSUPPORT)
+ 
+@@ -10387,6 +10746,21 @@ void loop() {
+       if (++cmd_queue_index_r >= BUFSIZE) cmd_queue_index_r = 0;
+     }
+   }
++#ifdef VENDOR_CODE
++  idle();
++  #ifdef TFTmodel
++  USBOnLineTest();
++  //  if((AssistLeveTestflag==1)&&(commands_in_queue < BUFSIZE)){ AssistLevelTest();}
++  if (TFTpausingFlag) //when pause sd printing,send "ok"to tft as read buffer carry out
++  {
++    stepper.synchronize();
++    TFTpausingFlag = false;
++    NEW_SERIAL_PROTOCOLPGM("J18"); // pausing done
++    TFT_SERIAL_ENTER();
++  }
++  #endif
++#else //#ifndef VENDOR_CODE
+   endstops.event_handler();
+   idle();
++#endif //#ifdef VENDOR_CODE else
+ }
+diff --git a/Marlin/Marlin/MyHardwareSerial.cpp b/Marlin/MyHardwareSerial.cpp
+new file mode 100644
+index 0000000..282407c
+--- /dev/null
++++ b/Marlin/MyHardwareSerial.cpp
+@@ -0,0 +1,299 @@
++/*
++  HardwareSerial.cpp - Hardware serial library for Wiring
++  Copyright (c) 2006 Nicholas Zambetti.  All right reserved.
++
++  This library is free software; you can redistribute it and/or
++  modify it under the terms of the GNU Lesser General Public
++  License as published by the Free Software Foundation; either
++  version 2.1 of the License, or (at your option) any later version.
++
++  This library is distributed in the hope that it will be useful,
++  but WITHOUT ANY WARRANTY; without even the implied warranty of
++  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++  Lesser General Public License for more details.
++
++  You should have received a copy of the GNU Lesser General Public
++  License along with this library; if not, write to the Free Software
++  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
++
++  Modified 23 November 2006 by David A. Mellis
++  Modified 28 September 2010 by Mark Sproul
++  Modified 14 August 2012 by Alarus
++*/
++
++#include <stdlib.h>
++#include <stdio.h>
++#include <string.h>
++#include <inttypes.h>
++#include "Arduino.h"
++#include "wiring_private.h"
++
++// this next line disables the entire HardwareSerial.cpp,
++// this is so I can support Attiny series and any other chip without a uart
++#if defined(UBRR3H)
++
++#include "MyHardwareSerial.h"
++
++// Define constants and variables for buffering incoming serial data.  We're
++// using a ring buffer (I think), in which head is the index of the location
++// to which to write the next incoming character and tail is the index of the
++// location from which to read.
++#if (RAMEND < 1000)
++  #define SERIAL_BUFFER_SIZE 16
++#else
++  #define SERIAL_BUFFER_SIZE 64
++#endif
++
++struct ring_buffer
++{
++  unsigned char buffer[SERIAL_BUFFER_SIZE];
++  volatile unsigned int head;
++  volatile unsigned int tail;
++};
++
++#if defined(UBRR3H)
++  ring_buffer rx_buffer_ajg  =  { { 0 }, 0, 0 };
++  ring_buffer tx_buffer_ajg  =  { { 0 }, 0, 0 };
++#endif
++
++inline void store_char(unsigned char c, ring_buffer *buffer)
++{
++  int i = (unsigned int)(buffer->head + 1) % SERIAL_BUFFER_SIZE;
++
++  // if we should be storing the received character into the location
++  // just before the tail (meaning that the head would advance to the
++  // current location of the tail), we're about to overflow the buffer
++  // and so we don't write the character or advance the head.
++  if (i != buffer->tail) {
++    buffer->buffer[buffer->head] = c;
++    buffer->head = i;
++  }
++}
++
++#if defined(USART3_RX_vect) && defined(UDR3)
++  void serialEvent3() __attribute__((weak));
++  void serialEvent3() {}
++  #define serialEvent3_implemented
++  ISR(USART3_RX_vect)
++  {
++    if (bit_is_clear(UCSR3A, UPE3)) {
++      unsigned char c = UDR3;
++      store_char(c, &rx_buffer_ajg);
++    } else {
++      unsigned char c = UDR3;
++    };
++  }
++#endif
++
++#ifdef USART3_UDRE_vect
++ISR(USART3_UDRE_vect)
++{
++  if (tx_buffer_ajg.head == tx_buffer_ajg.tail) {
++	// Buffer empty, so disable interrupts
++    cbi(UCSR3B, UDRIE3);
++  }
++  else {
++    // There is more data in the output buffer. Send the next byte
++    unsigned char c = tx_buffer_ajg.buffer[tx_buffer_ajg.tail];
++    tx_buffer_ajg.tail = (tx_buffer_ajg.tail + 1) % SERIAL_BUFFER_SIZE;
++
++    UDR3 = c;
++  }
++}
++#endif
++
++
++// Constructors ////////////////////////////////////////////////////////////////
++
++MyHardwareSerial::MyHardwareSerial(ring_buffer *rx_buffer, ring_buffer *tx_buffer,
++  volatile uint8_t *ubrrh, volatile uint8_t *ubrrl,
++  volatile uint8_t *ucsra, volatile uint8_t *ucsrb,
++  volatile uint8_t *ucsrc, volatile uint8_t *udr,
++  uint8_t rxen, uint8_t txen, uint8_t rxcie, uint8_t udrie, uint8_t u2x)
++{
++  _rx_buffer = rx_buffer;
++  _tx_buffer = tx_buffer;
++  _ubrrh = ubrrh;
++  _ubrrl = ubrrl;
++  _ucsra = ucsra;
++  _ucsrb = ucsrb;
++  _ucsrc = ucsrc;
++  _udr = udr;
++  _rxen = rxen;
++  _txen = txen;
++  _rxcie = rxcie;
++  _udrie = udrie;
++  _u2x = u2x;
++}
++
++// Public Methods //////////////////////////////////////////////////////////////
++
++void MyHardwareSerial::begin(unsigned long baud)
++{
++  uint16_t baud_setting;
++  bool use_u2x = true;
++
++#if F_CPU == 16000000UL
++  // hardcoded exception for compatibility with the bootloader shipped
++  // with the Duemilanove and previous boards and the firmware on the 8U2
++  // on the Uno and Mega 2560.
++  if (baud == 57600) {
++    use_u2x = false;
++  }
++#endif
++
++try_again:
++
++  if (use_u2x) {
++    *_ucsra = 1 << _u2x;
++    baud_setting = (F_CPU / 4 / baud - 1) / 2;
++  } else {
++    *_ucsra = 0;
++    baud_setting = (F_CPU / 8 / baud - 1) / 2;
++  }
++
++  if ((baud_setting > 4095) && use_u2x)
++  {
++    use_u2x = false;
++    goto try_again;
++  }
++
++  // assign the baud_setting, a.k.a. ubbr (USART Baud Rate Register)
++  *_ubrrh = baud_setting >> 8;
++  *_ubrrl = baud_setting;
++
++  transmitting = false;
++
++  sbi(*_ucsrb, _rxen);
++  sbi(*_ucsrb, _txen);
++  sbi(*_ucsrb, _rxcie);
++  cbi(*_ucsrb, _udrie);
++}
++
++void MyHardwareSerial::begin(unsigned long baud, byte config)
++{
++  uint16_t baud_setting;
++  uint8_t current_config;
++  bool use_u2x = true;
++
++#if F_CPU == 16000000UL
++  // hardcoded exception for compatibility with the bootloader shipped
++  // with the Duemilanove and previous boards and the firmware on the 8U2
++  // on the Uno and Mega 2560.
++  if (baud == 57600) {
++    use_u2x = false;
++  }
++#endif
++
++try_again:
++
++  if (use_u2x) {
++    *_ucsra = 1 << _u2x;
++    baud_setting = (F_CPU / 4 / baud - 1) / 2;
++  } else {
++    *_ucsra = 0;
++    baud_setting = (F_CPU / 8 / baud - 1) / 2;
++  }
++
++  if ((baud_setting > 4095) && use_u2x)
++  {
++    use_u2x = false;
++    goto try_again;
++  }
++
++  // assign the baud_setting, a.k.a. ubbr (USART Baud Rate Register)
++  *_ubrrh = baud_setting >> 8;
++  *_ubrrl = baud_setting;
++
++  //set the data bits, parity, and stop bits
++#if defined(__AVR_ATmega8__)
++  config |= 0x80; // select UCSRC register (shared with UBRRH)
++#endif
++  *_ucsrc = config;
++
++  sbi(*_ucsrb, _rxen);
++  sbi(*_ucsrb, _txen);
++  sbi(*_ucsrb, _rxcie);
++  cbi(*_ucsrb, _udrie);
++}
++
++void MyHardwareSerial::end()
++{
++  // wait for transmission of outgoing data
++  while (_tx_buffer->head != _tx_buffer->tail)
++    ;
++
++  cbi(*_ucsrb, _rxen);
++  cbi(*_ucsrb, _txen);
++  cbi(*_ucsrb, _rxcie);
++  cbi(*_ucsrb, _udrie);
++
++  // clear any received data
++  _rx_buffer->head = _rx_buffer->tail;
++}
++
++int MyHardwareSerial::available(void)
++{
++  return (int)(SERIAL_BUFFER_SIZE + _rx_buffer->head - _rx_buffer->tail) % SERIAL_BUFFER_SIZE;
++}
++
++int MyHardwareSerial::peek(void)
++{
++  if (_rx_buffer->head == _rx_buffer->tail) {
++    return -1;
++  } else {
++    return _rx_buffer->buffer[_rx_buffer->tail];
++  }
++}
++
++int MyHardwareSerial::read(void)
++{
++  // if the head isn't ahead of the tail, we don't have any characters
++  if (_rx_buffer->head == _rx_buffer->tail) {
++    return -1;
++  } else {
++    unsigned char c = _rx_buffer->buffer[_rx_buffer->tail];
++    _rx_buffer->tail = (unsigned int)(_rx_buffer->tail + 1) % SERIAL_BUFFER_SIZE;
++    return c;
++  }
++}
++
++void MyHardwareSerial::flush()
++{
++  // UDR is kept full while the buffer is not empty, so TXC triggers when EMPTY && SENT
++  while (transmitting && ! (*_ucsra & _BV(TXC0)));
++  transmitting = false;
++}
++
++size_t MyHardwareSerial::write(uint8_t c)
++{
++  int i = (_tx_buffer->head + 1) % SERIAL_BUFFER_SIZE;
++
++  // If the output buffer is full, there's nothing for it other than to
++  // wait for the interrupt handler to empty it a bit
++  // ???: return 0 here instead?
++  while (i == _tx_buffer->tail)
++    ;
++
++  _tx_buffer->buffer[_tx_buffer->head] = c;
++  _tx_buffer->head = i;
++
++  sbi(*_ucsrb, _udrie);
++  // clear the TXC bit -- "can be cleared by writing a one to its bit location"
++  transmitting = true;
++  sbi(*_ucsra, TXC0);
++
++  return 1;
++}
++
++MyHardwareSerial::operator bool() {
++	return true;
++}
++
++// Preinstantiate Objects //////////////////////////////////////////////////////
++
++#if defined(UBRR3H)
++  MyHardwareSerial NewSerial(&rx_buffer_ajg, &tx_buffer_ajg, &UBRR3H, &UBRR3L, &UCSR3A, &UCSR3B, &UCSR3C, &UDR3, RXEN3, TXEN3, RXCIE3, UDRIE3, U2X3);
++#endif
++
++#endif // whole file
+diff --git a/Marlin/Marlin/MyHardwareSerial.h b/Marlin/MyHardwareSerial.h
+new file mode 100644
+index 0000000..5890963
+--- /dev/null
++++ b/Marlin/MyHardwareSerial.h
+@@ -0,0 +1,103 @@
++/*
++  HardwareSerial.h - Hardware serial library for Wiring
++  Copyright (c) 2006 Nicholas Zambetti.  All right reserved.
++
++  This library is free software; you can redistribute it and/or
++  modify it under the terms of the GNU Lesser General Public
++  License as published by the Free Software Foundation; either
++  version 2.1 of the License, or (at your option) any later version.
++
++  This library is distributed in the hope that it will be useful,
++  but WITHOUT ANY WARRANTY; without even the implied warranty of
++  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++  Lesser General Public License for more details.
++
++  You should have received a copy of the GNU Lesser General Public
++  License along with this library; if not, write to the Free Software
++  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
++
++  Modified 28 September 2010 by Mark Sproul
++  Modified 14 August 2012 by Alarus
++*/
++
++#ifndef MyHardwareSerial_h
++#define MyHardwareSerial_h
++
++#include <inttypes.h>
++
++#include "Stream.h"
++
++struct ring_buffer;
++
++class MyHardwareSerial : public Stream
++{
++  private:
++    ring_buffer *_rx_buffer;
++    ring_buffer *_tx_buffer;
++    volatile uint8_t *_ubrrh;
++    volatile uint8_t *_ubrrl;
++    volatile uint8_t *_ucsra;
++    volatile uint8_t *_ucsrb;
++    volatile uint8_t *_ucsrc;
++    volatile uint8_t *_udr;
++    uint8_t _rxen;
++    uint8_t _txen;
++    uint8_t _rxcie;
++    uint8_t _udrie;
++    uint8_t _u2x;
++    bool transmitting;
++  public:
++    MyHardwareSerial(ring_buffer *rx_buffer, ring_buffer *tx_buffer,
++      volatile uint8_t *ubrrh, volatile uint8_t *ubrrl,
++      volatile uint8_t *ucsra, volatile uint8_t *ucsrb,
++      volatile uint8_t *ucsrc, volatile uint8_t *udr,
++      uint8_t rxen, uint8_t txen, uint8_t rxcie, uint8_t udrie, uint8_t u2x);
++    void begin(unsigned long);
++    void begin(unsigned long, uint8_t);
++    void end();
++    virtual int available(void);
++    virtual int peek(void);
++    virtual int read(void);
++    virtual void flush(void);
++    virtual size_t write(uint8_t);
++    inline size_t write(unsigned long n) { return write((uint8_t)n); }
++    inline size_t write(long n) { return write((uint8_t)n); }
++    inline size_t write(unsigned int n) { return write((uint8_t)n); }
++    inline size_t write(int n) { return write((uint8_t)n); }
++    using Print::write; // pull in write(str) and write(buf, size) from Print
++    operator bool();
++};
++
++// Define config for Serial.begin(baud, config);
++#define SERIAL_5N1 0x00
++#define SERIAL_6N1 0x02
++#define SERIAL_7N1 0x04
++#define SERIAL_8N1 0x06
++#define SERIAL_5N2 0x08
++#define SERIAL_6N2 0x0A
++#define SERIAL_7N2 0x0C
++#define SERIAL_8N2 0x0E
++#define SERIAL_5E1 0x20
++#define SERIAL_6E1 0x22
++#define SERIAL_7E1 0x24
++#define SERIAL_8E1 0x26
++#define SERIAL_5E2 0x28
++#define SERIAL_6E2 0x2A
++#define SERIAL_7E2 0x2C
++#define SERIAL_8E2 0x2E
++#define SERIAL_5O1 0x30
++#define SERIAL_6O1 0x32
++#define SERIAL_7O1 0x34
++#define SERIAL_8O1 0x36
++#define SERIAL_5O2 0x38
++#define SERIAL_6O2 0x3A
++#define SERIAL_7O2 0x3C
++#define SERIAL_8O2 0x3E
++
++#if defined(UBRR3H)
++  extern MyHardwareSerial NewSerial;
++#endif
++
++extern void serialEventRun(void) __attribute__((weak));
++
++#endif
+diff --git a/Marlin/Marlin/VendorCode.cpp b/Marlin/VendorCode.cpp
+new file mode 100644
+index 0000000..e701cf2
+--- /dev/null
++++ b/Marlin/VendorCode.cpp
+@@ -0,0 +1,1768 @@
++/**
++ * Anycubic Vendor Specific Code
++ *
++ * Based on Anycubic Chiron Codebase
++ * Copyright (C) 2018 Anycubic (https://github.com/ANYCUBIC-3D/ANYCUBIC_CHIRON_V1.3.0)
++ *
++ * This program is free software: you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation, either version 3 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
++ *
++ * Edited 2020 by Landgraph (http://www.landgraph.ru/, https://github.com/landgraph/)
++ */
++
++#include "Marlin.h"
++
++#ifdef VENDOR_CODE
++
++#include "stepper.h"
++#include "temperature.h"
++#include "configuration_store.h"
++#include "music.h"
++#include "ultralcd.h"
++
++#if ENABLED(SDSUPPORT)
++#include "cardreader.h"
++
++extern CardReader card; //defined in Marlin_main.cpp
++#endif
++
++#if HAS_BED_PROBE
++float NEW_zprobe_zoffset;
++#endif
++
++#if ENABLED(AUTO_BED_LEVELING_BILINEAR)
++extern int bilinear_grid_spacing[2], bilinear_start[2];
++extern float bed_level_grid[ABL_GRID_POINTS_X][ABL_GRID_POINTS_Y];
++#endif
++
++extern long gcode_N, gcode_LastN, Stopped_gcode_LastN;
++extern uint8_t cmd_queue_index_r,
++    cmd_queue_index_w,
++    commands_in_queue;
++
++char seekdataflag = 0;
++//char AssistLeveTestflag=0;
++char PointTestFlag = 0;
++char Z_offset_debug_flag = 0;
++float Current_z_offset;
++//static bool HomeFlag=0;
++//char AutoLevelLowSpeedModelFlag=0;
++uint16_t filenumber;
++bool USBConnectFlag = 0;
++bool ReadMyfileNrFlag = true;
++extern uint16_t MyFileNrCnt;
++
++unsigned char Manual_Leveling;
++
++static char TFTcmdbuffer[TFTBUFSIZE][TFT_MAX_CMD_SIZE];
++static int TFTbuflen = 0;
++static int TFTbufindr = 0;
++static int TFTbufindw = 0;
++static bool TFTfromsd[TFTBUFSIZE];
++static char serial3_char;
++static int serial3_count = 0;
++static boolean TFTcomment_mode = false;
++static char *TFTstrchr_pointer;
++
++unsigned long starttime = 0;
++unsigned long stoptime = 0;
++
++#if defined(OutageTest)
++int PowerInt = 6; //
++unsigned char PowerTestFlag = false;
++unsigned char ResumingFlag = 0;
++bool RestartFlag = false;
++#endif
++
++char FlagResumFromOutage = 0;
++
++const unsigned int Max_ModelCooling = MAX_MODEL_COOLING_PRECENT_VALUE * 255;
++
++char TFTpausingFlag = 0; //for return a flag that buffer carry out
++char TFTStatusFlag = 0;
++char TFTresumingflag = 0;
++char sdcardstartprintingflag = 0;
++char FilamentTestFlag = true;
++//float MYfeedrate_mm_s=2000;
++
++#if PIN_EXISTS(SD_DETECT)
++uint8_t lcd_sd_status;
++#endif
++
++char errorFlag = 0;
++
++char conv[9];
++
++#define DIGIT(n) ('0' + (n))
++#define DIGIMOD(n, f) DIGIT((n) / (f) % 10)
++#define RJDIGIT(n, f) ((n) >= (f) ? DIGIMOD(n, f) : ' ')
++#define MINUSOR(n, alt) (n >= 0 ? (alt) : (n = -n, '-'))
++
++// Convert unsigned int to string with 12 format
++char *itostr2(const uint8_t &x)
++{
++  int xx = x;
++  conv[0] = DIGIMOD(xx, 10);
++  conv[1] = DIGIMOD(xx, 1);
++  conv[2] = '\0';
++  return conv;
++}
++
++char *itostr3(const int &x)
++{
++  int xx = x;
++  conv[0] = MINUSOR(xx, RJDIGIT(xx, 100));
++  conv[1] = RJDIGIT(xx, 10);
++  conv[2] = DIGIMOD(xx, 1);
++  conv[3] = '\0';
++  return conv;
++}
++
++void setup_OutageTestPin()
++{
++#if defined(OutageTest)
++  pinMode(OUTAGETEST_PIN, INPUT);
++  //  WRITE(OUTAGETEST_PIN,HIGH);
++  pinMode(OUTAGECON_PIN, OUTPUT);
++  WRITE(OUTAGECON_PIN, LOW);
++#endif
++}
++#define FilamentTestPin 33
++void SetupFilament()
++{
++  pinMode(FilamentTestPin, INPUT);
++  WRITE(FilamentTestPin, HIGH);
++  _delay_ms(50);
++  /*
++    if(READ(FilamentTestPin)==true)
++    {
++      NEW_SERIAL_PROTOCOLPGM("J15");//j15 FILAMENT LACK
++      TFT_SERIAL_ENTER();
++      FilamentLack();//music
++     }
++     */
++}
++
++void FilamentScan()
++{
++  static char last_status = READ(FilamentTestPin);
++  static unsigned char now_status, status_flag = false;
++  static unsigned int counter = 0;
++  now_status = READ(FilamentTestPin) & 0xff;
++  // if (now_status==last_status) return;
++  if (now_status > last_status)
++  {
++    counter++;
++    if (counter >= 50000)
++    {
++      counter = 0;
++      FilamentLack(); //music
++      if ((card.sdprinting == true))
++      {
++        NEW_SERIAL_PROTOCOLPGM("J23"); //j23 FILAMENT LACK with the prompt box don't disappear
++        TFT_SERIAL_ENTER();
++        TFTpausingFlag = true;
++        card.pauseSDPrint();
++      }
++      else if ((card.sdprinting == false))
++      {
++        NEW_SERIAL_PROTOCOLPGM("J15"); //j15 FILAMENT LACK
++        TFT_SERIAL_ENTER();
++      }
++      last_status = now_status;
++    }
++  }
++  else if (now_status != last_status)
++  {
++    counter = 0;
++    last_status = now_status;
++  }
++  //  else  {counter=0;last_status=now_status;}
++}
++
++bool UsbOnLineFlag = false;
++void USBOnLineTest()
++{
++  static long int temp = 0;
++  if (USBConnectFlag == false)
++  {
++    if (UsbOnLineFlag == true)
++    {
++      temp++;
++      UsbOnLineFlag = false;
++      if (temp > 1)
++      {
++        USBConnectFlag = true;
++        NEW_SERIAL_PROTOCOLPGM("J03"); //usb connect
++        TFT_SERIAL_ENTER();
++        temp = 0;
++      }
++    }
++  }
++  else if (USBConnectFlag == true)
++  {
++    if (UsbOnLineFlag == false)
++    {
++      temp++;
++      if (temp > 50000)
++      {
++        UsbOnLineFlag = false;
++        USBConnectFlag = false;
++        NEW_SERIAL_PROTOCOLPGM("J12"); //ready
++        TFT_SERIAL_ENTER();
++        temp = 0;
++      }
++    }
++    else
++    {
++      temp = 0;
++      UsbOnLineFlag = false;
++    }
++  }
++}
++
++void PowerKill()
++{
++  //  SERIAL_ECHOLNPGM("int17 be called");
++#ifdef OutageTest
++  if (PowerTestFlag == true)
++  {
++    //		 MYfeedrate_mm_s=feedrate_mm_s;
++    thermalManager.disable_all_heaters();
++    //  #ifdef OutageTest
++    //  OutageSave();
++    //  #endif
++    disable_x();
++    disable_y();
++    disable_z();
++    disable_e0();
++    OutageSave();
++    PowerTestFlag = false;
++  }
++#endif
++}
++
++#define Z_TEST 2
++//#define BEEPER_PIN 31
++void setuplevelTest()
++{
++  pinMode(Z_TEST, INPUT);
++  WRITE(Z_TEST, HIGH);
++  pinMode(BEEPER_PIN, OUTPUT);
++  WRITE(BEEPER_PIN, LOW);
++}
++
++void Newok_to_send()
++{
++  previous_cmd_ms = millis();
++  /*
++  if (!send_ok[cmd_queue_index_r]) return;
++ // SERIAL_PROTOCOLPGM(MSG_OK);
++  #if ENABLED(ADVANCED_OK)
++    char* p = command_queue[cmd_queue_index_r];
++    if (*p == 'N') {
++      SERIAL_PROTOCOL(' ');
++      SERIAL_ECHO(*p++);
++      while (NUMERIC_SIGNED(*p))
++        SERIAL_ECHO(*p++);
++    }
++    SERIAL_PROTOCOLPGM(" P"); SERIAL_PROTOCOL(int(BLOCK_BUFFER_SIZE - planner.movesplanned() - 1));
++    SERIAL_PROTOCOLPGM(" B"); SERIAL_PROTOCOL(BUFSIZE - commands_in_queue);
++  #endif
++  SERIAL_EOL;
++  */
++}
++void NEWFlushSerialRequestResend()
++{
++  //char command_queue[cmd_queue_index_r][100]="Resend:";
++  NewSerial.flush();
++  // SERIAL_PROTOCOLPGM(MSG_RESEND);
++  //  SERIAL_PROTOCOLLN(gcode_LastN + 1);
++  Newok_to_send();
++}
++
++float TFTcode_value()
++{
++  return (strtod(&TFTcmdbuffer[TFTbufindr][TFTstrchr_pointer - TFTcmdbuffer[TFTbufindr] + 1], NULL));
++}
++bool TFTcode_seen(char code)
++{
++  TFTstrchr_pointer = strchr(TFTcmdbuffer[TFTbufindr], code);
++  return (TFTstrchr_pointer != NULL); //Return True if a character was found
++}
++
++uint16_t MyGetFileNr()
++{
++  if (card.cardOK)
++  {
++    MyFileNrCnt = 0;
++    ReadMyfileNrFlag = true;
++    delay(10);
++    card.Myls();
++  }
++  return MyFileNrCnt;
++}
++
++void z_offset_auto_test()
++{
++  float i = 0;
++  while ((READ(Z_TEST) == 0))
++
++  {
++    i = i + 0.025;
++    planner.buffer_line(current_position[X_AXIS], current_position[Y_AXIS], i, 0, 6, 2);
++    stepper.synchronize();
++    delay(30);
++  }
++  Current_z_offset = i;
++  //  SaveMyZoffset();
++  NEW_SERIAL_PROTOCOLPGM("A9V ");
++  NEW_SERIAL_PROTOCOL(int(Current_z_offset * 100));
++  TFT_SERIAL_ENTER();
++  return;
++}
++
++void get_command_from_TFT()
++{
++  char *starpos = NULL;
++  while (NewSerial.available() > 0 && TFTbuflen < TFTBUFSIZE)
++  {
++    serial3_char = NewSerial.read();
++    if (serial3_char == '\n' ||
++        serial3_char == '\r' ||
++        (serial3_char == ':' && TFTcomment_mode == false) ||
++        serial3_count >= (TFT_MAX_CMD_SIZE - 1))
++    {
++      if (!serial3_count)
++      {                          //if empty line
++        TFTcomment_mode = false; //for new command
++        return;
++      }
++      TFTcmdbuffer[TFTbufindw][serial3_count] = 0; //terminate string
++                                                   // NEW_SERIAL_PROTOCOL("OK:");
++                                                   // NEW_SERIAL_PROTOCOLLN(TFTcmdbuffer[TFTbufindw]);
++      if (!TFTcomment_mode)
++      {
++        TFTcomment_mode = false; //for new command
++        TFTfromsd[TFTbufindw] = false;
++        if (strchr(TFTcmdbuffer[TFTbufindw], 'N') != NULL)
++        {
++          TFTstrchr_pointer = strchr(TFTcmdbuffer[TFTbufindw], 'N');
++          gcode_N = (strtol(&TFTcmdbuffer[TFTbufindw][TFTstrchr_pointer - TFTcmdbuffer[TFTbufindw] + 1], NULL, 10));
++          if (gcode_N != gcode_LastN + 1 && (strstr_P(TFTcmdbuffer[TFTbufindw], PSTR("M110")) == NULL))
++          {
++            NEW_SERIAL_ERROR_START;
++            //     NEW_SERIAL_ERRORPGM(MSG_ERR_LINE_NO);
++            //     NEW_SERIAL_ERRORLN(gcode_LastN);
++            NEWFlushSerialRequestResend();
++            serial3_count = 0;
++            return;
++          }
++
++          if (strchr(TFTcmdbuffer[TFTbufindw], '*') != NULL)
++          {
++            byte checksum = 0;
++            byte count = 0;
++            while (TFTcmdbuffer[TFTbufindw][count] != '*')
++              checksum = checksum ^ TFTcmdbuffer[TFTbufindw][count++];
++            TFTstrchr_pointer = strchr(TFTcmdbuffer[TFTbufindw], '*');
++
++            if ((int)(strtod(&TFTcmdbuffer[TFTbufindw][TFTstrchr_pointer - TFTcmdbuffer[TFTbufindw] + 1], NULL)) != checksum)
++            {
++              NEW_SERIAL_ERROR_START;
++              //     NEW_SERIAL_ERRORPGM(MSG_ERR_CHECKSUM_MISMATCH);
++              //     NEW_SERIAL_ERRORLN(gcode_LastN);
++              NEWFlushSerialRequestResend();
++
++              NEW_SERIAL_ERROR_START;
++              //     NEW_SERIAL_ERRORPGM(MSG_ERR_CHECKSUM_MISMATCH);
++              //     NEW_SERIAL_ERRORLN(gcode_LastN);
++              NEWFlushSerialRequestResend();
++              serial3_count = 0;
++              return;
++            }
++            //if no errors, continue parsing
++          }
++          else
++          {
++            NEW_SERIAL_ERROR_START;
++            //   NEW_SERIAL_ERRORPGM(MSG_ERR_NO_CHECKSUM);
++            //   NEW_SERIAL_ERRORLN(gcode_LastN);
++            NEWFlushSerialRequestResend();
++            serial3_count = 0;
++            return;
++          }
++          gcode_LastN = gcode_N;
++          //if no errors, continue parsing
++        }
++        else // if we don't receive 'N' but still see '*'
++        {
++          if ((strchr(TFTcmdbuffer[TFTbufindw], '*') != NULL))
++          {
++            NEW_SERIAL_ERROR_START;
++            //     NEW_SERIAL_ERRORPGM(MSG_ERR_NO_LINENUMBER_WITH_CHECKSUM);
++            //     NEW_SERIAL_ERRORLN(gcode_LastN);
++            serial3_count = 0;
++            return;
++          }
++        }
++        if ((strchr(TFTcmdbuffer[TFTbufindw], 'A') != NULL))
++        {
++          TFTstrchr_pointer = strchr(TFTcmdbuffer[TFTbufindw], 'A');
++          switch ((int)((strtod(&TFTcmdbuffer[TFTbufindw][TFTstrchr_pointer - TFTcmdbuffer[TFTbufindw] + 1], NULL))))
++          {
++
++          case 0: //A0 GET HOTEND TEMP
++            NEW_SERIAL_PROTOCOLPGM("A0V ");
++            NEW_SERIAL_PROTOCOL(itostr3(int(thermalManager.degHotend(0) + 0.5)));
++            TFT_SERIAL_ENTER();
++            break;
++          case 1: //A1  GET HOTEND TARGET TEMP
++            NEW_SERIAL_PROTOCOLPGM("A1V ");
++            NEW_SERIAL_PROTOCOL(itostr3(int(thermalManager.degTargetHotend(0) + 0.5)));
++            TFT_SERIAL_ENTER();
++            break;
++          case 2: //A2 GET HOTBED TEMP
++            NEW_SERIAL_PROTOCOLPGM("A2V ");
++            NEW_SERIAL_PROTOCOL(itostr3(int(thermalManager.degBed() + 0.5)));
++            TFT_SERIAL_ENTER();
++            break;
++          case 3: //A3 GET HOTBED TARGET TEMP
++            NEW_SERIAL_PROTOCOLPGM("A3V ");
++            NEW_SERIAL_PROTOCOL(itostr3(int(thermalManager.degTargetBed() + 0.5)));
++            TFT_SERIAL_ENTER();
++            break;
++
++          case 4: //A4 GET FAN SPEED
++          {
++            unsigned int temp;
++            temp = ((fanSpeeds[0] * 100) / Max_ModelCooling + 1);
++            //   temp=((fanSpeeds[0]*100)/179+1);
++            temp = constrain(temp, 0, 100);
++            NEW_SERIAL_PROTOCOLPGM("A4V ");
++            NEW_SERIAL_PROTOCOL(temp);
++            TFT_SERIAL_ENTER();
++          }
++          break;
++          case 5: // A5 GET CURRENT COORDINATE
++            NEW_SERIAL_PROTOCOLPGM("A5V");
++            TFT_SERIAL_SPACE();
++            NEW_SERIAL_PROTOCOLPGM("X: ");
++            NEW_SERIAL_PROTOCOL(current_position[X_AXIS]);
++            TFT_SERIAL_SPACE();
++            NEW_SERIAL_PROTOCOLPGM("Y: ");
++            NEW_SERIAL_PROTOCOL(current_position[Y_AXIS]);
++            TFT_SERIAL_SPACE();
++            NEW_SERIAL_PROTOCOLPGM("Z: ");
++            NEW_SERIAL_PROTOCOL(current_position[Z_AXIS]);
++            TFT_SERIAL_SPACE();
++            TFT_SERIAL_ENTER();
++            break;
++          case 6: //A6 GET SD CARD PRINTING STATUS
++            if (card.sdprinting)
++            {
++              NEW_SERIAL_PROTOCOLPGM("A6V ");
++              TFTStatusFlag = 1;
++              //  card.getStatus();
++              card.TFTgetStatus();
++            }
++            else
++              NEW_SERIAL_PROTOCOLPGM("A6V ---");
++            TFT_SERIAL_ENTER();
++            break;
++          case 7: //A7 GET PRINTING TIME
++          {
++            NEW_SERIAL_PROTOCOLPGM("A7V ");
++            if (starttime != 0) //print time
++            {
++              //   uint16_t time = millis()/60000 - starttime/60000;
++              uint16_t time = millis() / 60000 - starttime / 60000;
++              NEW_SERIAL_PROTOCOL(itostr2(time / 60));
++              TFT_SERIAL_SPACE();
++              NEW_SERIAL_PROTOCOLPGM("H");
++              TFT_SERIAL_SPACE();
++              NEW_SERIAL_PROTOCOL(itostr2(time % 60));
++              TFT_SERIAL_SPACE();
++              NEW_SERIAL_PROTOCOLPGM("M");
++            }
++            else
++            {
++              TFT_SERIAL_SPACE();
++              NEW_SERIAL_PROTOCOLPGM("999:999");
++            }
++            TFT_SERIAL_ENTER();
++            /*
++                          else if(USBConnectFlag)  {
++                          stoptime=millis();
++                          char time[30];
++                          unsigned long t=(stoptime-starttime)/1000;
++                          int sec,min;
++                          min=t/60;
++                          sec=t%60;
++                          sprintf_P(time, PSTR("%i M, %i S"), min, sec);
++                          TFT_SERIAL_START();
++                          NEW_SERIAL_ECHOLN(time);
++                          TFT_SERIAL_ENTER();
++                          }
++                          //autotempShutdown();
++                         */
++
++            break;
++          }
++          case 8: //A8 GET  SD LIST
++            MyFileNrCnt = 0;
++            if (!IS_SD_INSERTED)
++            {
++              NEW_SERIAL_PROTOCOLPGM("J02");
++              TFT_SERIAL_ENTER();
++            }
++            else
++            {
++              MyGetFileNr();
++              ReadMyfileNrFlag = false;
++              if (TFTcode_seen('S'))
++                filenumber = TFTcode_value();
++              NEW_SERIAL_PROTOCOLPGM("FN ");
++              TFT_SERIAL_ENTER();
++              card.Myls();
++              NEW_SERIAL_PROTOCOLPGM("END");
++              TFT_SERIAL_ENTER();
++            }
++            break;
++          case 9: // a9 pasue sd
++            if (card.sdprinting)
++            {
++              //              static unsigned long lastcounter=0,newcounter=0;  //in case two times Pause of  Commond are too short to lose commond
++              //             lastcounter=newcounter;
++              //              newcounter=millis();
++              //              if(((newcounter-lastcounter)<20000)) break;   //about 15s
++              //              else{
++              TFTpausingFlag = true;
++              card.pauseSDPrint();
++              NEW_SERIAL_PROTOCOLPGM("J05"); //j05 pausing
++              TFT_SERIAL_ENTER();
++              //               }
++            }
++            else
++            {
++              NEW_SERIAL_PROTOCOLPGM("J16"); //j16,if status error, send stop print flag in case TFT no response
++              TFT_SERIAL_ENTER();
++            }
++            break;
++          case 10: // A10 resume sd print
++            if (TFTresumingflag)
++            {
++              card.startFileprint();
++              NEW_SERIAL_PROTOCOLPGM("J04"); //j4ok printing form sd card
++              TFT_SERIAL_ENTER();
++            }
++            break;
++          case 11: //A11 STOP SD PRINT
++            if ((card.sdprinting) || TFTresumingflag)
++            {
++              FlagResumFromOutage = 0; //must clean the flag.
++              card.TFTStopPringing();
++              enqueue_and_echo_commands_P(PSTR("M84"));
++            }
++            break;
++          case 12: //a12 kill
++                   //   NEW_SERIAL_PROTOCOLPGM("J11");//kill()
++                   //    TFT_SERIAL_ENTER();
++                   //    kill();
++            break;
++          case 13: //A13 SELECTION FILE
++                   //if((!USBConnectFlag)&&(!card.sdprinting))
++            if ((!planner.movesplanned()) && (!TFTresumingflag))
++            {
++              starpos = (strchr(TFTstrchr_pointer + 4, '*'));
++              if (starpos != NULL)
++                *(starpos - 1) = '\0';
++              card.openFile(TFTstrchr_pointer + 4, true);
++              sdcardstartprintingflag = 1;
++              TFT_SERIAL_ENTER();
++            }
++            break;
++          case 14: //A14 START PRINTING
++                   // if((!USBConnectFlag)&&(!card.sdprinting))
++            if ((!planner.movesplanned()) && (!TFTresumingflag))
++            {
++              errorFlag = 0;
++              card.startFileprint();
++              starttime = millis();
++              PointTestFlag = false;
++              NEW_SERIAL_PROTOCOLPGM("J06"); //hotend heating
++              TFT_SERIAL_ENTER();
++            }
++            break;
++          case 15: //A15 RESUMING FROM OUTAGE
++                   // if((!USBConnectFlag)&&(!card.sdprinting))
++            if ((!planner.movesplanned()) && (!TFTresumingflag))
++            {
++              if (card.cardOK)
++                FlagResumFromOutage = true;
++              ResumingFlag = 1;
++              card.startFileprint();
++              starttime = millis();
++              NEW_SERIAL_SUCC_START;
++            }
++            TFT_SERIAL_ENTER();
++            break;
++          case 16: //a16 set hotend temp
++          {
++            unsigned int tempvalue;
++            //   char value[15];
++            if (TFTcode_seen('S'))
++            {
++              tempvalue = constrain(TFTcode_value(), 0, 275);
++              thermalManager.setTargetHotend(tempvalue, 0);
++              //  thermalManager.start_watching_heater(0);
++            }
++            else if ((TFTcode_seen('C')) && (!planner.movesplanned()))
++            {
++              //   if((READ(Z_TEST)==0)) enqueue_and_echo_commands_P(PSTR("G1 Z10")); //RASE Z AXIS
++              tempvalue = constrain(TFTcode_value(), 0, 275);
++              thermalManager.setTargetHotend(tempvalue, 0);
++              //   thermalManager.start_watching_heater(0);
++            }
++          }
++          //    TFT_SERIAL_ENTER();
++          break;
++          case 17: // a17 set hotbed temp
++          {
++            unsigned int tempbed;
++            if (TFTcode_seen('S'))
++            {
++              tempbed = constrain(TFTcode_value(), 0, 150);
++              thermalManager.setTargetBed(tempbed);
++              // thermalManager.start_watching_heater(0);
++            }
++          }
++          //  TFT_SERIAL_ENTER();
++          break;
++          case 18: //a18 set fan speed
++            unsigned int temp;
++            if (TFTcode_seen('S'))
++            {
++              unsigned int test = 179;
++              temp = (TFTcode_value() * Max_ModelCooling / 100);
++              temp = constrain(temp, 0, Max_ModelCooling);
++              //     temp=(TFTcode_value()*179/100);
++              //    temp=constrain(temp,0,179);
++              fanSpeeds[0] = temp;
++            }
++            else
++              fanSpeeds[0] = Max_ModelCooling; //fanSpeeds[0]=179;
++            TFT_SERIAL_ENTER();
++            break;
++          case 19: // A19 CLOSED STEPER DIRV
++            if ((!USBConnectFlag) && (!card.sdprinting))
++            //  if((!planner.movesplanned())&&(!TFTresumingflag))
++            {
++              quickstop_stepper();
++              disable_x();
++              disable_y();
++              disable_z();
++              disable_e0();
++            }
++            TFT_SERIAL_ENTER();
++            break;
++          case 20: // a20 read printing speed
++          {
++
++            if (TFTcode_seen('S'))
++            {
++              feedrate_percentage = constrain(TFTcode_value(), 40, 999);
++            }
++            else
++            {
++              NEW_SERIAL_PROTOCOLPGM("A20V ");
++              NEW_SERIAL_PROTOCOL(feedrate_percentage);
++              TFT_SERIAL_ENTER();
++            }
++          }
++          break;
++          case 21: //a21 all home
++                   // if((!USBConnectFlag)&&(!card.sdprinting))
++            if ((!planner.movesplanned()) && (!TFTresumingflag))
++            {
++              if (TFTcode_seen('X') || TFTcode_seen('Y') || TFTcode_seen('Z'))
++              {
++                if (TFTcode_seen('X'))
++                  enqueue_and_echo_commands_P(PSTR("G28 X"));
++                if (TFTcode_seen('Y'))
++                  enqueue_and_echo_commands_P(PSTR("G28 Y"));
++                if (TFTcode_seen('Z'))
++                  enqueue_and_echo_commands_P(PSTR("G28 Z"));
++              }
++              else if (TFTcode_seen('C'))
++                enqueue_and_echo_commands_P(PSTR("G28"));
++            }
++            break;
++          case 22: // A22 move X /Y/Z
++                   // if((!USBConnectFlag)&&(!card.sdprinting))
++            if ((!planner.movesplanned()) && (!TFTresumingflag))
++            {
++              float coorvalue;
++              unsigned int movespeed = 0;
++              char value[30];
++              if (TFTcode_seen('F'))
++                movespeed = TFTcode_value(); //movespeed=constrain(TFTcode_value(), 1,5000);
++              enqueue_and_echo_commands_P(PSTR("G91"));
++
++              if (TFTcode_seen('X'))
++              {
++                coorvalue = TFTcode_value();
++                if ((coorvalue <= 0.2) && coorvalue > 0)
++                {
++                  sprintf_P(value, PSTR("G1 X0.1F%i"), movespeed);
++                  enqueue_and_echo_command_now(value);
++                }
++                else if ((coorvalue <= -0.1) && coorvalue > -1)
++                {
++                  sprintf_P(value, PSTR("G1 X-0.1F%i"), movespeed);
++                  enqueue_and_echo_command_now(value);
++                }
++                else
++                {
++                  sprintf_P(value, PSTR("G1 X%iF%i"), int(coorvalue), movespeed);
++                  enqueue_and_echo_command_now(value);
++                }
++              }
++              else if (TFTcode_seen('Y'))
++              {
++                coorvalue = TFTcode_value();
++                if ((coorvalue <= 0.2) && coorvalue > 0)
++                {
++                  sprintf_P(value, PSTR("G1 Y0.1F%i"), movespeed);
++                  enqueue_and_echo_command_now(value);
++                }
++                else if ((coorvalue <= -0.1) && coorvalue > -1)
++                {
++                  sprintf_P(value, PSTR("G1 Y-0.1F%i"), movespeed);
++                  enqueue_and_echo_command_now(value);
++                }
++                else
++                {
++                  sprintf_P(value, PSTR("G1 Y%iF%i"), int(coorvalue), movespeed);
++                  enqueue_and_echo_command_now(value);
++                }
++              }
++              else if (TFTcode_seen('Z'))
++              {
++                coorvalue = TFTcode_value();
++                if ((coorvalue <= 0.2) && coorvalue > 0)
++                {
++                  sprintf_P(value, PSTR("G1 Z0.1F%i"), movespeed);
++                  enqueue_and_echo_command_now(value);
++                }
++                else if ((coorvalue <= -0.1) && coorvalue > -1)
++                {
++                  sprintf_P(value, PSTR("G1 Z-0.1F%i"), movespeed);
++                  enqueue_and_echo_command_now(value);
++                }
++                else
++                {
++                  sprintf_P(value, PSTR("G1 Z%iF%i"), int(coorvalue), movespeed);
++                  enqueue_and_echo_command_now(value);
++                }
++              }
++              else if (TFTcode_seen('E'))
++              {
++                coorvalue = TFTcode_value();
++                if ((coorvalue <= 0.2) && coorvalue > 0)
++                {
++                  sprintf_P(value, PSTR("G1 E0.1F%i"), movespeed);
++                  enqueue_and_echo_command_now(value);
++                }
++                else if ((coorvalue <= -0.1) && coorvalue > -1)
++                {
++                  sprintf_P(value, PSTR("G1 E-0.1F%i"), movespeed);
++                  enqueue_and_echo_command_now(value);
++                }
++                else
++                {
++                  sprintf_P(value, PSTR("G1 E%iF500"), int(coorvalue));
++                  enqueue_and_echo_command_now(value);
++                }
++                //  else {sprintf_P(value,PSTR("G1 E%iF%i"),int(coorvalue),movespeed); enqueue_and_echo_command_now(value); }
++              }
++              enqueue_and_echo_commands_P(PSTR("G90"));
++            }
++            TFT_SERIAL_ENTER();
++            break;
++          case 23: //a23 prheat pla
++                   // if((!USBConnectFlag)&&(!card.sdprinting))
++            if ((!planner.movesplanned()) && (!TFTresumingflag))
++            {
++              //    if((READ(Z_TEST)==0)) enqueue_and_echo_commands_P(PSTR("G1 Z10")); //RASE Z AXIS
++              thermalManager.setTargetBed(50);
++              thermalManager.setTargetHotend(190, 0);
++              //     enqueue_and_echo_commands_P(PSTR("M140 S50")); //HOTBED
++              //     enqueue_and_echo_commands_P(PSTR("M104 S190")); //HOTBED
++              NEW_SERIAL_SUCC_START;
++              TFT_SERIAL_ENTER();
++            }
++            break;
++          case 24: //a24 prheat abs
++                   // if((!USBConnectFlag)&&(!card.sdprinting))
++            if ((!planner.movesplanned()) && (!TFTresumingflag))
++            {
++              //      if((READ(Z_TEST)==0)) enqueue_and_echo_commands_P(PSTR("G1 Z10")); //RASE Z AXIS
++              thermalManager.setTargetBed(80);
++              thermalManager.setTargetHotend(240, 0);
++              //     enqueue_and_echo_commands_P(PSTR("M140 S80")); //HOTBED
++              //    enqueue_and_echo_commands_P(PSTR("M104 S240")); //HOTBED
++              NEW_SERIAL_SUCC_START;
++              TFT_SERIAL_ENTER();
++            }
++            break;
++          case 25: //a25 cool down
++                   //if((!USBConnectFlag)&&(!card.sdprinting))
++            if ((!planner.movesplanned()) && (!TFTresumingflag))
++            {
++              thermalManager.setTargetHotend(0, 0);
++              thermalManager.setTargetBed(0);
++              NEW_SERIAL_PROTOCOLPGM("J12"); //
++              TFT_SERIAL_ENTER();
++            }
++            break;
++          case 26: //a26 refresh
++            card.initsd();
++            if (!IS_SD_INSERTED)
++            {
++              NEW_SERIAL_PROTOCOLPGM("J02");
++              TFT_SERIAL_ENTER();
++            }
++            //       else enqueue_and_echo_commands_P(PSTR("M20"));
++            //        TFT_SERIAL_ENTER();
++            break;
++#ifdef SERVO_ENDSTOPS
++          case 27: //a27 servos angles  adjust
++                   //if((!USBConnectFlag)&&(!card.sdprinting))
++            if ((!planner.movesplanned()) && (!TFTresumingflag))
++            {
++              char value[30];
++              planner.buffer_line(current_position[X_AXIS], current_position[Y_AXIS], 20, current_position[E_AXIS], 10, active_extruder);
++              stepper.synchronize();
++              NEW_SERIAL_PROTOCOLPGM("A27V ");
++              NEW_SERIAL_PROTOCOLPGM("R ");
++              NEW_SERIAL_PROTOCOL(RiseAngles);
++              TFT_SERIAL_SPACE();
++              NEW_SERIAL_PROTOCOLPGM("F ");
++              NEW_SERIAL_PROTOCOL(FallAngles);
++              TFT_SERIAL_SPACE();
++              if (TFTcode_seen('R'))
++              {
++                RiseAngles = TFTcode_value();
++              }
++              if (TFTcode_seen('F'))
++              {
++                FallAngles = TFTcode_value();
++              }
++              if (TFTcode_seen('O'))
++              {
++                SaveMyServoAngles();
++                delay(200);
++                servos[0].detach();
++              }
++            }
++            TFT_SERIAL_ENTER();
++            break;
++#endif
++          case 28: //A28 filament test
++          {
++            if (TFTcode_seen('O'))
++              ;
++            else if (TFTcode_seen('C'))
++              ;
++          }
++            TFT_SERIAL_ENTER();
++            break;
++#ifdef AUTO_BED_LEVELING_BILINEAR
++          case 29: //A29 bed grid read
++          {
++            unsigned char temp_x = 0, temp_y = 0;
++            if (TFTcode_seen('X'))
++              temp_x = TFTcode_value();
++            if (TFTcode_seen('Y'))
++              temp_y = TFTcode_value();
++            float Zvalue = bed_level_grid[temp_x][temp_y];
++            Zvalue = Zvalue * 100;
++            NEW_SERIAL_PROTOCOLPGM("A29V ");
++            NEW_SERIAL_PROTOCOL(Zvalue);
++            TFT_SERIAL_ENTER();
++          }
++          break;
++
++          case 30: //a30 auto leveling
++          {
++            if (Manual_Leveling == 0xaa)
++            {
++              NEW_SERIAL_PROTOCOLPGM("J24"); // forbid auto leveling
++              TFT_SERIAL_ENTER();
++              break;
++            }
++            if ((planner.movesplanned()) || (card.sdprinting))
++            {
++              NEW_SERIAL_PROTOCOLPGM("J24"); // forbid auto leveling
++              TFT_SERIAL_ENTER();
++            }
++            else
++            {
++              NEW_SERIAL_PROTOCOLPGM("J26"); //start auto leveling
++              TFT_SERIAL_ENTER();
++            }
++            if (TFTcode_seen('S'))
++            {
++              Manual_Leveling = 0x55;
++              enqueue_and_echo_commands_P(PSTR("G28\nG29"));
++            }
++          }
++          break;
++          case 31: //a31 zoffset set get or save
++          {
++            if (Manual_Leveling == 0xaa)
++              break;
++            if (TFTcode_seen('S'))
++            {
++              float value = constrain(TFTcode_value(), -1.0, 1.0);
++              NEW_zprobe_zoffset += value;
++              for (uint8_t x = 0; x < ABL_GRID_POINTS_X; x++)
++              {
++                for (uint8_t y = 0; y < ABL_GRID_POINTS_Y; y++)
++                  bed_level_grid[x][y] += value;
++              }
++              NEW_SERIAL_PROTOCOLPGM("A31V ");
++              NEW_SERIAL_PROTOCOL(NEW_zprobe_zoffset);
++              TFT_SERIAL_ENTER();
++            }
++            if (TFTcode_seen('G'))
++            {
++              NEW_SERIAL_PROTOCOLPGM("A31V ");
++              NEW_SERIAL_PROTOCOL(NEW_zprobe_zoffset);
++              TFT_SERIAL_ENTER();
++            }
++            if (TFTcode_seen('D'))
++              SaveAutoBedGridData();
++          }
++            TFT_SERIAL_ENTER();
++            break;
++#endif
++          case 32: //a32 clean leveling beep flag
++                   //   {
++                   //       PointTestFlag=0;
++                   //    }
++            break;
++          case 33: // a33 get version info
++          {
++            if (errorFlag == 0)
++            {
++              NEW_SERIAL_PROTOCOLPGM("J33 ");
++              NEW_SERIAL_PROTOCOLPGM(MSG_MY_VERSION);
++              TFT_SERIAL_ENTER();
++            }
++            else if (errorFlag == 1)
++            {
++              NEW_SERIAL_PROTOCOLPGM("J33 ");
++              NEW_SERIAL_PROTOCOLPGM("ReadSD card error!");
++              TFT_SERIAL_ENTER();
++            }
++            else if (errorFlag == 2)
++            {
++              NEW_SERIAL_PROTOCOLPGM("J33 ");
++              NEW_SERIAL_PROTOCOLPGM("MinT0");
++              TFT_SERIAL_ENTER();
++            }
++            else if (errorFlag == 3)
++            {
++              NEW_SERIAL_PROTOCOLPGM("J33 ");
++              NEW_SERIAL_PROTOCOLPGM("MinT1");
++              TFT_SERIAL_ENTER();
++            }
++            else if (errorFlag == 4)
++            {
++              NEW_SERIAL_PROTOCOLPGM("J33 ");
++              NEW_SERIAL_PROTOCOLPGM("MaxT0");
++              TFT_SERIAL_ENTER();
++            }
++            else if (errorFlag == 5)
++            {
++              NEW_SERIAL_PROTOCOLPGM("J33 ");
++              NEW_SERIAL_PROTOCOLPGM("MaxT1");
++              TFT_SERIAL_ENTER();
++            }
++            else if (errorFlag == 6)
++            {
++              NEW_SERIAL_PROTOCOLPGM("J33 ");
++              NEW_SERIAL_PROTOCOLPGM("Killed");
++              TFT_SERIAL_ENTER();
++            }
++          }
++          break;
++#ifdef AUTO_BED_LEVELING_BILINEAR
++          case 34: //a34 bed grid write
++          {
++            uint8_t x_array = 0, y_array = 0, result = 0;
++            if (Manual_Leveling == 0xaa)
++              break;
++            if (TFTcode_seen('X'))
++              x_array = constrain(TFTcode_value(), 0, ABL_GRID_POINTS_X);
++            if (TFTcode_seen('Y'))
++              y_array = constrain(TFTcode_value(), 0, ABL_GRID_POINTS_Y);
++            if (TFTcode_seen('V'))
++            {
++              float i = constrain(TFTcode_value() / 100, -10, 10);
++              bed_level_grid[x_array][y_array] = i;
++            }
++            if (TFTcode_seen('S'))
++              SaveAutoBedGridData();
++            if (TFTcode_seen('C'))
++              ReadAutoBedGridData(); // if click return(didn't choose save),needs restore bed grid data.
++          }
++          break;
++#endif
++          default:
++            break;
++          }
++        }
++        TFTbufindw = (TFTbufindw + 1) % TFTBUFSIZE;
++        TFTbuflen += 1;
++      }
++      serial3_count = 0; //clear buffer
++    }
++    else
++    {
++      if (serial3_char == ';')
++        TFTcomment_mode = true;
++      if (!TFTcomment_mode)
++        TFTcmdbuffer[TFTbufindw][serial3_count++] = serial3_char;
++    }
++  }
++}
++
++void mybeep(int beepP, int beepS)
++{
++  if (beepS > 0)
++  {
++#if BEEPER_PIN > 0
++    tone(BEEPER_PIN, beepS);
++    delay(beepP);
++    noTone(BEEPER_PIN);
++#elif defined(ULTRALCD)
++    lcd_buzz(beepS, beepP);
++#elif defined(LCD_USE_I2C_BUZZER)
++    lcd_buzz(beepP, beepS);
++#endif
++  }
++  else
++  {
++    delay(beepP);
++  }
++}
++
++void Endstopsbeep()
++{
++  static char last_status = ((READ(X_MIN_PIN) << 3) | (READ(Y_MIN_PIN) << 2) | (READ(Z_MAX_PIN) << 1) | READ(Z_MIN_PIN));
++  static unsigned char now_status, status_flag = false, counter = 0;
++
++  now_status = ((READ(X_MIN_PIN) << 3) | (READ(Y_MIN_PIN) << 2) | (READ(Z_MAX_PIN) << 1) | READ(Z_MIN_PIN)) & 0xff;
++  if (now_status < last_status)
++  {
++    counter++;
++    if (counter >= 250)
++    {
++      counter = 0;
++      mybeep(60, 2000);
++      last_status = now_status;
++    }
++  }
++  else if (now_status != last_status)
++  {
++    counter = 0;
++    last_status = now_status;
++  }
++}
++#ifdef AUTO_BED_LEVELING_BILINEAR
++void setupMyZoffset()
++{
++  //  ReadMyZoffset();
++  readFirstBootFlag();
++  ReadWay2Leveling();
++  ReadAutoBedGridData();
++  if ((Manual_Leveling != 0xaa) && (Manual_Leveling != 0x55))
++  {
++    Manual_Leveling = 0xaa;
++    SaveWay2Leveling();
++  }
++  SERIAL_ECHOPAIR("MEANL_L:", Manual_Leveling);
++  zprobe_zoffset = Z_PROBE_OFFSET_FROM_EXTRUDER;
++  if (FirstBootFlag != 0xa5)
++  {
++    FirstBootFlag = 0xa5;
++    SaveFirstBootFlag();
++    for (uint8_t x = 0; x < ABL_GRID_POINTS_X; x++)
++    {
++      for (uint8_t y = 0; y < ABL_GRID_POINTS_Y; y++)
++        bed_level_grid[x][y] = -3.5;
++    };
++    //  Manual_Leveling=0xaa;
++    bilinear_grid_spacing[0] = int((RIGHT_PROBE_BED_POSITION - LEFT_PROBE_BED_POSITION) / (ABL_GRID_POINTS_X - 1));
++    bilinear_grid_spacing[1] = int((BACK_PROBE_BED_POSITION - FRONT_PROBE_BED_POSITION) / (ABL_GRID_POINTS_Y - 1));
++    bilinear_start[0] = LEFT_PROBE_BED_POSITION;
++    bilinear_start[1] = FRONT_PROBE_BED_POSITION;
++    zprobe_zoffset = Z_PROBE_OFFSET_FROM_EXTRUDER;
++    NEW_zprobe_zoffset = Z_PROBE_OFFSET_FROM_EXTRUDER;
++    SaveAutoBedGridData();
++    // SERIAL_ECHOPAIR("detection", NEW_zprobe_zoffset);
++  }
++  else
++    zprobe_zoffset = NEW_zprobe_zoffset;
++}
++#endif
++void SetUpFAN2_PIN()
++{
++  SET_OUTPUT(V5_COOLING_PIN);
++  WRITE(V5_COOLING_PIN, LOW);
++}
++void Fan2Scan()
++{
++  if (thermalManager.degHotend(0) > 65)
++    WRITE(V5_COOLING_PIN, HIGH);
++  else
++    WRITE(V5_COOLING_PIN, LOW);
++}
++
++void TFT_Commond_Scan()
++{
++#ifdef TFTmodel
++  if (TFTbuflen < (TFTBUFSIZE - 1))
++    get_command_from_TFT();
++  if (TFTbuflen)
++  {
++    TFTbuflen = (TFTbuflen - 1);
++    TFTbufindr = (TFTbufindr + 1) % TFTBUFSIZE;
++  }
++#endif
++  static unsigned int Scancount = 0;
++  //    static unsigned long timeoutToStatus = 0;
++  if ((thermalManager.degHotend(0) < 5) || ((thermalManager.degHotend(0) > 280)))
++    Scancount++;
++  if (Scancount > 61000)
++  {
++    Scancount = 0;
++    NEW_SERIAL_PROTOCOLPGM("J10");
++    TFT_SERIAL_ENTER();
++  } //T0 unnormal
++}
++
++void setupSDCARD()
++{
++  SET_INPUT(SD_DETECT_PIN);
++  WRITE(SD_DETECT_PIN, HIGH);
++  _delay_ms(300);
++  card.initsd();
++}
++
++/*
++void AssistLevelTest()
++{
++static unsigned char stepFlag=0;
++static char i=0;
++static float E_count=0;
++if(stepFlag==0)
++{
++  enqueue_and_echo_commands_P(PSTR("G28"));
++  enqueue_and_echo_commands_P(PSTR("M109 S200"));
++  stepFlag=1;
++}
++else if((stepFlag<72)&&(stepFlag>0)&&HomeFlag)
++{
++  if(thermalManager.degTargetHotend(0)<197) return;
++  feedrate_percentage =2000.0;
++  stepFlag++;
++  E_count+=0.99781;
++  planner.buffer_line(TEST_GCODE[i][0],TEST_GCODE[i][1],0.2,E_count,feedrate_percentage/60,0);
++  i++;
++  if(i==35)i=0;
++}
++else if(stepFlag>72)
++{
++  current_position[X_AXIS]=20;
++  current_position[Y_AXIS]=20;
++  current_position[Z_AXIS]=10;
++  planner.set_e_position_mm(0);
++//  stepper.synchronize();
++  thermalManager.setTargetHotend(0,0); //EXTRADER 0 COOL DOWN
++  stepFlag=0;
++  HomeFlag=0;
++  NEW_SERIAL_PROTOCOLPGM("J22");//level watching finish
++  TFT_SERIAL_ENTER();
++  enqueue_and_echo_commands_P(PSTR("G28"));
++  AssistLeveTestflag=0;
++  i=0;
++  E_count=0;
++}
++}
++*/
++bool pauseCMDsendflag = false;
++void pauseCMDsend()
++{
++  static char temp = 0;
++  if (commands_in_queue < BUFSIZE)
++  {
++    temp++;
++    if (temp == 1)
++      enqueue_and_echo_commands_P(PSTR("G91"));
++    if (temp == 2)
++    {
++      enqueue_and_echo_commands_P(PSTR("G1 Z+20"));
++      pauseCMDsendflag = false;
++      temp = 0;
++    }
++  }
++}
++/*
++void MY_AUTOlevelAlarm()
++{
++  if((READ(Z_TEST)==0))  tone(BEEPER_PIN, 4000,1);
++  else noTone(BEEPER_PIN);
++}
++*/
++
++void SDCARD_UPDATA()
++{
++
++  bool sd_status = IS_SD_INSERTED;
++  if (sd_status != lcd_sd_status)
++  {
++    if (sd_status)
++    {
++      card.initsd();
++#ifdef TFTmodel
++      MyGetFileNr();
++      NEW_SERIAL_PROTOCOLPGM("J00");
++      TFT_SERIAL_ENTER();
++#endif
++    }
++    else
++    {
++      card.release();
++#ifdef TFTmodel
++      NEW_SERIAL_PROTOCOLPGM("J01");
++      TFT_SERIAL_ENTER();
++#endif
++    }
++    lcd_sd_status = sd_status;
++  }
++}
++
++#if ENABLED(EEPROM_SETTINGS)
++/* Declared in configuration_store.cpp */
++extern void _EEPROM_writeData(int &pos, uint8_t *value, uint8_t size);
++extern void _EEPROM_readData(int &pos, uint8_t *value, uint8_t size);
++
++//Should be same as in configuration_store.cpp
++#define EEPROM_VERSION "V27"
++
++#define DUMMY_PID_VALUE 3000.0f
++#define EEPROM_START() int eeprom_index = EEPROM_OFFSET
++#define EEPROM_SKIP(VAR) eeprom_index += sizeof(VAR)
++#define EEPROM_WRITE(VAR) _EEPROM_writeData(eeprom_index, (uint8_t *)&VAR, sizeof(VAR))
++#define EEPROM_READ(VAR) _EEPROM_readData(eeprom_index, (uint8_t *)&VAR, sizeof(VAR))
++
++#define EEPROM_WRITE_VAR(pos, value) _EEPROM_writeData(pos, (uint8_t *)&value, sizeof(value))
++#define EEPROM_READ_VAR(pos, value) _EEPROM_readData(pos, (uint8_t *)&value, sizeof(value))
++
++#ifdef OutageTest
++float last_position[4] = {0.0, 0.0, 0.0, 0.0};
++long last_sd_position[1] = {0};
++//extern float MYfeedrate_mm_s;
++void OutageSave()
++{
++  char ver[4] = "000";
++  int j = 20;
++  EEPROM_WRITE_VAR(j, ver);
++  // last_sd_position[0]=card.GetLastSDpos();
++  last_position[0] = current_position[E_AXIS];
++  last_position[1] = current_position[Z_AXIS];
++  last_position[2] = current_position[Y_AXIS];
++  last_position[3] = current_position[X_AXIS];
++
++  EEPROM_WRITE_VAR(j, last_sd_position[0]);
++  EEPROM_WRITE_VAR(j, last_position[0]); //E
++  EEPROM_WRITE_VAR(j, last_position[1]); //Z
++  EEPROM_WRITE_VAR(j, last_position[2]); //Y
++  EEPROM_WRITE_VAR(j, last_position[3]); //X
++  //  EEPROM_WRITE_VAR(j,MYfeedrate_mm_s);
++}
++
++void OutageRead()
++{
++  int i = 20;
++  char stored_ver[4];
++  char ver[4] = EEPROM_VERSION;
++  EEPROM_READ_VAR(i, stored_ver);
++  EEPROM_READ_VAR(i, last_sd_position[0]);
++  EEPROM_READ_VAR(i, last_position[0]); //E
++  EEPROM_READ_VAR(i, last_position[1]); //Z
++  EEPROM_READ_VAR(i, last_position[2]); //Y
++  EEPROM_READ_VAR(i, last_position[3]); //X
++
++  /*
++        SERIAL_ECHOPAIR(" MYx",last_position[3]);
++        SERIAL_ECHOPAIR(" MYy",last_position[2]);
++        SERIAL_ECHOPAIR(" MYz",last_position[1]);
++        SERIAL_ECHOPAIR(" MYe",last_position[0]);
++        SERIAL_ECHOPAIR(" SD",last_sd_position[0]);
++      */
++}
++
++#endif
++
++void SaveWay2Leveling()
++{
++  char ver[4] = "000";
++  int j = 10;
++  EEPROM_WRITE_VAR(j, ver);
++  EEPROM_WRITE_VAR(j, Manual_Leveling);
++}
++
++void ReadWay2Leveling()
++{
++  int i = 10;
++  char stored_ver[4];
++  EEPROM_READ_VAR(i, stored_ver);
++  EEPROM_READ_VAR(i, Manual_Leveling);
++}
++
++unsigned char FirstBootFlag;
++#define bootEEPROM_OFFSET 85
++void SaveFirstBootFlag()
++{
++  char ver[4] = "000";
++  int j = bootEEPROM_OFFSET;
++  FirstBootFlag = 0xa5;
++  EEPROM_WRITE_VAR(j, ver);
++  EEPROM_WRITE_VAR(j, FirstBootFlag);
++}
++void readFirstBootFlag()
++{
++  int i = bootEEPROM_OFFSET;
++  char stored_ver[4];
++  //   char ver[4]=EEPROM_VERSION;
++  EEPROM_READ_VAR(i, stored_ver);
++  EEPROM_READ_VAR(i, FirstBootFlag);
++}
++
++#define zEEPROM_OFFSET 50
++//float last_z_offset[1]={0.0};
++float last_z_offset = 0;
++void SaveMyZoffset()
++{
++  char ver[4] = "000";
++  int j = zEEPROM_OFFSET;
++  last_z_offset = Current_z_offset;
++  EEPROM_WRITE_VAR(j, ver);
++  EEPROM_WRITE_VAR(j, last_z_offset);
++}
++
++void ReadMyZoffset()
++{
++  int i = zEEPROM_OFFSET;
++  char stored_ver[4];
++  char ver[4] = EEPROM_VERSION;
++  EEPROM_READ_VAR(i, stored_ver);
++  EEPROM_READ_VAR(i, last_z_offset);
++}
++
++#ifdef AUTO_BED_LEVELING_BILINEAR
++
++#define sEEPROM_OFFSET 2000
++void SaveAutoBedGridData()
++{
++  char ver[4] = "000";
++  int j = sEEPROM_OFFSET;
++
++  EEPROM_WRITE_VAR(j, ver);
++  EEPROM_WRITE_VAR(j, bilinear_grid_spacing);
++  EEPROM_WRITE_VAR(j, bilinear_start);
++  EEPROM_WRITE_VAR(j, bed_level_grid);
++  EEPROM_WRITE_VAR(j, NEW_zprobe_zoffset);
++
++  //  EEPROM_WRITE_VAR(j,Manual_Leveling );
++}
++void ReadAutoBedGridData()
++{
++  int i = sEEPROM_OFFSET;
++  char stored_ver[4];
++  char ver[4] = EEPROM_VERSION;
++
++  EEPROM_READ_VAR(i, stored_ver);
++  EEPROM_READ_VAR(i, bilinear_grid_spacing);
++  EEPROM_READ_VAR(i, bilinear_start);
++  EEPROM_READ_VAR(i, bed_level_grid);
++  EEPROM_READ_VAR(i, NEW_zprobe_zoffset);
++
++  //    EEPROM_READ_VAR(i,Manual_Leveling);
++  zprobe_zoffset = NEW_zprobe_zoffset;
++}
++#endif //AUTO_BED_LEVELING_BILINEAR
++#endif //ENABLED(EEPROM_SETTINGS)
++
++float Temperature::get_pid_output(int e)
++{
++
++//Define has been copied from temperature.cpp
++#ifdef K1
++#define K2 (1.0 - K1)
++#endif
++
++#if HOTENDS == 1
++  UNUSED(e);
++#define _HOTEND_TEST true
++#else
++#define _HOTEND_TEST e == active_extruder
++#endif
++  float pid_output;
++#if ENABLED(PIDTEMP)
++#if DISABLED(PID_OPENLOOP)
++  pid_error[HOTEND_INDEX] = target_temperature[HOTEND_INDEX] - current_temperature[HOTEND_INDEX];
++  dTerm[HOTEND_INDEX] = K2 * PID_PARAM(Kd, HOTEND_INDEX) * (current_temperature[HOTEND_INDEX] - temp_dState[HOTEND_INDEX]) + K1 * dTerm[HOTEND_INDEX];
++  temp_dState[HOTEND_INDEX] = current_temperature[HOTEND_INDEX];
++#if HEATER_IDLE_HANDLER
++  if (heater_idle_timeout_exceeded[HOTEND_INDEX])
++  {
++    pid_output = 0;
++    pid_reset[HOTEND_INDEX] = true;
++  }
++  else
++#endif
++      if (pid_error[HOTEND_INDEX] > PID_FUNCTIONAL_RANGE)
++  {
++    pid_output = BANG_MAX;
++    pid_reset[HOTEND_INDEX] = true;
++  }
++  else if (pid_error[HOTEND_INDEX] < -(PID_FUNCTIONAL_RANGE) || target_temperature[HOTEND_INDEX] == 0
++#if HEATER_IDLE_HANDLER
++           || heater_idle_timeout_exceeded[HOTEND_INDEX]
++#endif
++  )
++  {
++    pid_output = 0;
++    pid_reset[HOTEND_INDEX] = true;
++  }
++  else
++  {
++    if (pid_reset[HOTEND_INDEX])
++    {
++      temp_iState[HOTEND_INDEX] = 0.0;
++      pid_reset[HOTEND_INDEX] = false;
++    }
++    pTerm[HOTEND_INDEX] = PID_PARAM(Kp, HOTEND_INDEX) * pid_error[HOTEND_INDEX];
++    temp_iState[HOTEND_INDEX] += pid_error[HOTEND_INDEX];
++    iTerm[HOTEND_INDEX] = PID_PARAM(Ki, HOTEND_INDEX) * temp_iState[HOTEND_INDEX];
++
++    pid_output = pTerm[HOTEND_INDEX] + iTerm[HOTEND_INDEX] - dTerm[HOTEND_INDEX];
++
++#if ENABLED(PID_EXTRUSION_SCALING)
++    cTerm[HOTEND_INDEX] = 0;
++    if (_HOTEND_TEST)
++    {
++      long e_position = stepper.position(E_AXIS);
++      if (e_position > last_e_position)
++      {
++        lpq[lpq_ptr] = e_position - last_e_position;
++        last_e_position = e_position;
++      }
++      else
++      {
++        lpq[lpq_ptr] = 0;
++      }
++      if (++lpq_ptr >= lpq_len)
++        lpq_ptr = 0;
++      cTerm[HOTEND_INDEX] = (lpq[lpq_ptr] * planner.steps_to_mm[E_AXIS]) * PID_PARAM(Kc, HOTEND_INDEX);
++      pid_output += cTerm[HOTEND_INDEX];
++    }
++#endif // PID_EXTRUSION_SCALING
++
++    if (pid_output > PID_MAX)
++    {
++      if (pid_error[HOTEND_INDEX] > 0)
++        temp_iState[HOTEND_INDEX] -= pid_error[HOTEND_INDEX]; // conditional un-integration
++      pid_output = PID_MAX;
++    }
++    else if (pid_output < 0)
++    {
++      if (pid_error[HOTEND_INDEX] < 0)
++        temp_iState[HOTEND_INDEX] -= pid_error[HOTEND_INDEX]; // conditional un-integration
++      pid_output = 0;
++    }
++  }
++#else
++  pid_output = constrain(target_temperature[HOTEND_INDEX], 0, PID_MAX);
++#endif // PID_OPENLOOP
++
++#if ENABLED(PID_DEBUG)
++  SERIAL_ECHO_START();
++  SERIAL_ECHOPAIR(MSG_PID_DEBUG, HOTEND_INDEX);
++  SERIAL_ECHOPAIR(MSG_PID_DEBUG_INPUT, current_temperature[HOTEND_INDEX]);
++  SERIAL_ECHOPAIR(MSG_PID_DEBUG_OUTPUT, pid_output);
++  SERIAL_ECHOPAIR(MSG_PID_DEBUG_PTERM, pTerm[HOTEND_INDEX]);
++  SERIAL_ECHOPAIR(MSG_PID_DEBUG_ITERM, iTerm[HOTEND_INDEX]);
++  SERIAL_ECHOPAIR(MSG_PID_DEBUG_DTERM, dTerm[HOTEND_INDEX]);
++#if ENABLED(PID_EXTRUSION_SCALING)
++  SERIAL_ECHOPAIR(MSG_PID_DEBUG_CTERM, cTerm[HOTEND_INDEX]);
++#endif
++  SERIAL_EOL();
++#endif // PID_DEBUG
++
++#else /* PID off */
++#if HEATER_IDLE_HANDLER
++  if (heater_idle_timeout_exceeded[HOTEND_INDEX])
++    pid_output = 0;
++  else
++#endif
++    pid_output = (current_temperature[HOTEND_INDEX] < target_temperature[HOTEND_INDEX]) ? PID_MAX : 0;
++#endif
++
++  return pid_output;
++}
++
++#if ENABLED(ULTRA_LCD)
++void lcd_update()
++{
++#if ENABLED(SDSUPPORT) && PIN_EXISTS(SD_DETECT)
++  bool sd_status = IS_SD_INSERTED;
++  if (sd_status != lcd_sd_status && lcd_detected())
++  {
++
++    if (sd_status)
++    {
++      card.initsd();
++      if (lcd_sd_status != 2)
++        LCD_MESSAGEPGM(MSG_SD_INSERTED);
++#ifdef TFTmodel
++      MyGetFileNr();
++      NEW_SERIAL_PROTOCOLPGM("J00");
++      TFT_SERIAL_ENTER();
++#endif
++    }
++    else
++    {
++      card.release();
++      if (lcd_sd_status != 2)
++        LCD_MESSAGEPGM(MSG_SD_REMOVED);
++#ifdef TFTmodel
++      NEW_SERIAL_PROTOCOLPGM("J01");
++      TFT_SERIAL_ENTER();
++#endif
++    }
++    lcd_sd_status = sd_status;
++  }
++
++#endif //SDSUPPORT && SD_DETECT_PIN
++}
++#endif // #if ENABLED(ULTRA_LCD)
++
++#if ENABLED(SDSUPPORT)
++void CardReader::Myls()
++{
++  lsAction = MySerial3Print;
++  root.rewind();
++  lsDive("", root);
++}
++
++uint16_t MyFileNrCnt = 0;
++extern bool ReadMyfileNrFlag;
++uint16_t fileoutputcnt = 0;
++extern char *createFilename(char *buffer, const dir_t &p);
++
++void CardReader::lsDive(const char *prepend, SdFile parent, const char *const match /*=NULL*/)
++{
++  dir_t p;
++  uint8_t cnt = 0;
++  while (parent.readDir(p, longFilename) > 0)
++  {
++    if (DIR_IS_SUBDIR(&p) && lsAction != LS_Count && lsAction != LS_GetFilename) // hence LS_SerialPrint
++    {
++
++      char path[13 * 2];
++      char lfilename[13];
++      createFilename(lfilename, p);
++      path[0] = 0;
++      if (strlen(prepend) == 0) //avoid leading / if already in prepend
++      {
++        strcat(path, "/");
++      }
++      strcat(path, prepend);
++      strcat(path, lfilename);
++      strcat(path, "/");
++      //Serial.print(path);
++
++      SdFile dir;
++      if (!dir.open(parent, lfilename, O_READ))
++      {
++        if (lsAction == LS_SerialPrint)
++        {
++          SERIAL_ECHO_START;
++          SERIAL_ECHOLN(MSG_SD_CANT_OPEN_SUBDIR);
++          SERIAL_ECHOLN(lfilename);
++          //          #ifdef TFTmodel
++          //          NEW_SERIAL_ECHOLN(MSG_SD_CANT_OPEN_SUBDIR);
++          //          NEW_SERIAL_ECHOLN(lfilename);
++          //          #endif
++        }
++      }
++      lsDive(path, dir);
++      //close done automatically by destructor of SdFile
++    }
++    else
++    {
++      if (p.name[0] == DIR_NAME_FREE)
++        break;
++      if (p.name[0] == DIR_NAME_DELETED || p.name[0] == '.' || p.name[0] == '_')
++        continue;
++      if (longFilename[0] != '\0' &&
++          (longFilename[0] == '.' || longFilename[0] == '_'))
++        continue;
++      if (p.name[0] == '.')
++      {
++        if (p.name[1] != '.')
++          continue;
++      }
++
++      if (!DIR_IS_FILE_OR_SUBDIR(&p))
++        continue;
++      filenameIsDir = DIR_IS_SUBDIR(&p);
++      if (!filenameIsDir)
++      {
++        if (p.name[8] != 'G')
++          continue;
++        if (p.name[9] == '~')
++          continue;
++      }
++      //if(cnt++!=nr) continue;
++      createFilename(filename, p);
++
++      if (lsAction == MySerial3Print)
++      {
++        if (ReadMyfileNrFlag)
++        {
++          if ((strstr(filename, ".gco") != NULL) || (strstr(filename, ".GCO") != NULL))
++            MyFileNrCnt++;
++          //  MyFileNrCnt++;
++        }
++        else
++        {
++          //  if((MyFileNrCnt-filenumber*4)<4)
++          if ((MyFileNrCnt - filenumber) < 4)
++          {
++            if (fileoutputcnt < (MyFileNrCnt - filenumber))
++            {
++              NEW_SERIAL_PROTOCOL(prepend);
++              NEW_SERIAL_PROTOCOLLN(filename);
++              //        NEW_SERIAL_PROTOCOL(prepend);
++              NEW_SERIAL_PROTOCOLLN(longFilename);
++            }
++          }
++          //    else if((fileoutputcnt>=((MyFileNrCnt-4)-filenumber*4))&&(fileoutputcnt<MyFileNrCnt-filenumber*4))
++          else if ((fileoutputcnt >= ((MyFileNrCnt - 4) - filenumber)) && (fileoutputcnt < MyFileNrCnt - filenumber))
++          {
++            NEW_SERIAL_PROTOCOL(prepend);
++            NEW_SERIAL_PROTOCOLLN(filename);
++            //      NEW_SERIAL_PROTOCOL(prepend);
++            NEW_SERIAL_PROTOCOLLN(longFilename);
++          }
++          fileoutputcnt++;
++        }
++        if (fileoutputcnt >= MyFileNrCnt)
++          fileoutputcnt = 0;
++      }
++      else if (lsAction == LS_SerialPrint)
++      {
++        SERIAL_PROTOCOL(prepend);
++        SERIAL_PROTOCOLLN(filename);
++      }
++      else if (lsAction == LS_Count)
++      {
++        nrFiles++;
++      }
++      else if (lsAction == LS_GetFilename)
++      {
++        //  if(cnt==nrFiles)
++        //    return;
++        //   cnt++;
++        createFilename(filename, p);
++        if (match != NULL)
++        {
++          if (strcasecmp(match, filename) == 0)
++            return;
++        }
++        else if (cnt == nrFiles)
++          return;
++        cnt++;
++      }
++    }
++  }
++}
++
++void CardReader::startFileprint()
++{
++  if (cardOK)
++  {
++    sdprinting = true;
++    if (TFTresumingflag)
++    {
++      //      enquecommand_P(PSTR("G91"));
++      enqueue_and_echo_commands_P(PSTR("G1 Z-20"));
++      enqueue_and_echo_commands_P(PSTR("G90"));
++      TFTresumingflag = false;
++    }
++  }
++}
++
++void CardReader::TFTStopPringing()
++{
++  sdprinting = false;
++  TFTresumingflag = false;
++  sdcardstartprintingflag = false;
++  closefile();
++  quickstop_stepper();
++  NEW_SERIAL_PROTOCOLPGM("J16"); //STOP
++  TFT_SERIAL_ENTER();
++  //  autotempShutdown();
++  disable_x();
++  disable_y();
++  disable_z();
++  disable_e0();
++}
++
++void CardReader::TFTgetStatus()
++{
++  //  if(TFTStatusFlag)
++  //  {
++  if (cardOK)
++  {
++    NEW_SERIAL_PROTOCOL(itostr3(percentDone()));
++  }
++  else
++  {
++    NEW_SERIAL_PROTOCOLPGM("J02");
++    //        TFT_SERIAL_ENTER();
++  }
++  //    TFTStatusFlag=0;
++  //  }
++}
++#endif // #if ENABLED(SDSUPPORT)
++
++#endif // #ifdef VENDOR_CODE
+\ No newline at end of file
+diff --git a/Marlin/Marlin/VendorCode.h b/Marlin/VendorCode.h
+new file mode 100644
+index 0000000..7a56599
+--- /dev/null
++++ b/Marlin/VendorCode.h
+@@ -0,0 +1,155 @@
++/**
++ * Anycubic Vendor Specific Code
++ *
++ * Based on Anycubic Chiron Codebase
++ * Copyright (C) 2018 Anycubic (https://github.com/ANYCUBIC-3D/ANYCUBIC_CHIRON_V1.3.0)
++ *
++ * This program is free software: you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation, either version 3 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
++ *
++ * Edited 2020 by Landgraph (http://www.landgraph.ru/, https://github.com/landgraph/)
++ */
++#ifndef VENDORCODE_H
++#define VENDORCODE_H
++
++#include "MyHardwareSerial.h"
++#include "MarlinSerial.h"
++#include "types.h"
++
++/******************************************************************/
++/*                          Marlin_main                           */
++/******************************************************************/
++
++#define NEW_SERIAL_PROTOCOL(x) (NewSerial.print(x))
++#define NEW_SERIAL_PROTOCOL_F(x, y) (NewSerial.print(x, y))
++#define NEW_SERIAL_PROTOCOLPGM(x) (NewSerialprintPGM(PSTR(x)))
++#define NEW_SERIAL_(x) (NewSerial.print(x), NewSerial.write('\n'))
++#define NEW_SERIAL_PROTOCOLLN(x) (NewSerial.print(x), NewSerial.write('\r'), NewSerial.write('\n'))
++#define NEW_SERIAL_PROTOCOLLNPGM(x) (NewSerialprintPGM(PSTR(x)), NewSerial.write('\n'))
++
++#define TFT_SERIAL_START() (NewSerial.write('\r'), NewSerial.write('\n'))
++#define TFT_SERIAL_CMD_SEND(x) (NewSerialprintPGM(PSTR(x)), NewSerial.write('\r'), NewSerial.write('\n'))
++#define TFT_SERIAL_ENTER() (NewSerial.write('\r'), NewSerial.write('\n'))
++#define TFT_SERIAL_SPACE() (NewSerial.write(' '))
++
++const char newErr[] PROGMEM = "ERR ";
++const char newSucc[] PROGMEM = "OK";
++#define NEW_SERIAL_ERROR_START (NewSerialprintPGM(newErr))
++#define NEW_SERIAL_ERROR(x) NEW_SERIAL_PROTOCOL(x)
++#define NEW_SERIAL_ERRORPGM(x) NEW_SERIAL_PROTOCOLPGM(x)
++#define NEW_SERIAL_ERRORLN(x) NEW_SERIAL_PROTOCOLLN(x)
++#define NEW_SERIAL_ERRORLNPGM(x) NEW_SERIAL_PROTOCOLLNPGM(x)
++
++//##define NEW_SERIAL_ECHO_START (NewSerialprintPGM(newSucc))
++#define NEW_SERIAL_ECHOLN(x) NEW_SERIAL_PROTOCOLLN(x)
++#define NEW_SERIAL_SUCC_START (NewSerialprintPGM(newSucc))
++#define NEW_SERIAL_ECHOPAIR(name, value) (serial_echopair_P(PSTR(name), (value)))
++#define NEW_SERIAL_ECHOPGM(x) NEW_SERIAL_PROTOCOLPGM(x)
++#define NEW_SERIAL_ECHO(x) NEW_SERIAL_PROTOCOL(x)
++
++FORCE_INLINE void NewSerialprintPGM(const char *str)
++{
++  char ch = pgm_read_byte(str);
++  while (ch)
++  {
++    NewSerial.write(ch);
++    ch = pgm_read_byte(++str);
++  }
++}
++void NEWFlushSerialRequestResend();
++void NEWClearToSend();
++
++extern char TFTpausingFlag;
++extern char TFTresumingflag;
++extern char PointTestFlag;
++extern char errorFlag;
++extern char FlagResumFromOutage;
++extern unsigned char ResumingFlag;
++extern char sdcardstartprintingflag;
++extern char seekdataflag;
++extern bool UsbOnLineFlag;
++extern bool USBConnectFlag;
++#if defined(OutageTest)
++extern int PowerInt;
++extern unsigned char PowerTestFlag;
++#endif
++#if PIN_EXISTS(SD_DETECT)
++extern uint8_t lcd_sd_status;
++#endif
++
++extern const unsigned int Max_ModelCooling;
++#if HAS_BED_PROBE
++extern float NEW_zprobe_zoffset;
++#endif
++#if ENABLED(AUTO_BED_LEVELING_BILINEAR)
++extern void setupMyZoffset();
++#endif
++
++extern char *itostr3(const int &x);
++extern char *itostr2(const uint8_t &x);
++extern void PowerKill();
++extern void FilamentScan();
++extern void Fan2Scan();
++extern void TFT_Commond_Scan();
++extern void setup_OutageTestPin();
++extern void SetUpFAN2_PIN();
++extern void setupSDCARD();
++extern void SetupFilament();
++extern uint16_t MyGetFileNr();
++extern void USBOnLineTest();
++extern void SDCARD_UPDATA();
++extern void pauseCMDsend();
++
++#if ENABLED(SDSUPPORT)
++#if defined(OutageTest)
++extern unsigned char PowerTestFlag;
++extern char seekdataflag;
++#endif
++extern char TFTStatusFlag;
++extern char sdcardstartprintingflag;
++extern uint16_t filenumber;
++extern bool pauseCMDsendflag;
++#endif
++
++/******************************************************************/
++/*                      configuration_store                       */
++/******************************************************************/
++
++#if ENABLED(EEPROM_SETTINGS)
++void SaveAutoBedGridData();
++void ReadAutoBedGridData();
++
++#ifdef OutageTest
++extern bool RestartFlag;
++void OutageSave();
++void OutageRead();
++extern float last_position[4];
++extern long last_sd_position[1];
++#endif
++extern float Current_z_offset;
++extern float last_z_offset;
++extern unsigned char FirstBootFlag;
++void SaveFirstBootFlag();
++void readFirstBootFlag();
++
++extern float Current_z_offset;
++
++void SaveWay2Leveling();
++void ReadWay2Leveling();
++extern unsigned char Manual_Leveling;
++extern unsigned char FirstBootFlag;
++void SaveFirstBootFlag();
++void readFirstBootFlag();
++#endif //ENABLED(EEPROM_SETTINGS)
++
++#endif //VENDORCODE_H
+diff --git a/Marlin/cardreader.cpp b/Marlin/cardreader.cpp
+similarity index 90%
+index e79200c..16ee596 100644
+--- a/Marlin/cardreader.cpp
++++ b/Marlin/cardreader.cpp
+@@ -66,6 +66,7 @@ char *createFilename(char *buffer, const dir_t &p) { //buffer > 12characters
+ 
+ uint16_t nrFile_index;
+ 
++#ifndef VENDOR_CODE
+ void CardReader::lsDive(const char *prepend, SdFile parent, const char * const match/*=NULL*/) {
+   dir_t p;
+   uint8_t cnt = 0;
+@@ -141,6 +142,7 @@ void CardReader::lsDive(const char *prepend, SdFile parent, const char * const m
+     }
+   } // while readDir
+ }
++#endif // #ifndef VENDOR_CODE
+ 
+ void CardReader::ls() {
+   lsAction = LS_SerialPrint;
+@@ -271,14 +273,16 @@ void CardReader::openAndPrintFile(const char *name) {
+   enqueue_and_echo_commands_P(PSTR("M24"));
+ }
+ 
++#ifndef VENDOR_CODE
+ void CardReader::startFileprint() {
+   if (cardOK) {
+     sdprinting = true;
+     #if SD_RESORT
+       flush_presort();
+     #endif
+   }
+ }
++#endif // #ifndef VENDOR_CODE
+ 
+ void CardReader::stopSDPrint(
+   #if SD_RESORT
+@@ -313,6 +318,11 @@ void CardReader::openFile(char* name, bool read, bool push_current/*=false*/) {
+         return;
+       }
+ 
++     #ifdef TFTmodel
++//     NEW_SERIAL_ECHOPGM("SUBROUTINE CALL target:\"");
++     NEW_SERIAL_ECHO(name);
++//     NEW_SERIAL_ECHOPGM("\" parent:\"");
++     #endif
+       // Store current filename (based on workDirParents) and position
+       getAbsFilename(proc_filenames[file_subcall_ctr]);
+       filespos[file_subcall_ctr] = sdpos;
+@@ -330,6 +340,10 @@ void CardReader::openFile(char* name, bool read, bool push_current/*=false*/) {
+   else { // Opening fresh file
+     doing = 2;
+     file_subcall_ctr = 0; // Reset procedure depth in case user cancels print while in procedure
++     #ifdef TFTmodel
++//    NEW_SERIAL_ECHOPGM("Now fresh file: ");
++    NEW_SERIAL_ECHOLN(name);
++    #endif
+   }
+ 
+   if (doing) {
+@@ -361,6 +375,13 @@ void CardReader::openFile(char* name, bool read, bool push_current/*=false*/) {
+       SERIAL_PROTOCOLPAIR(MSG_SD_OPEN_FILE_FAIL, dosSubdirname);
+       SERIAL_PROTOCOLCHAR('.');
+       SERIAL_EOL();
++           #ifdef TFTmodel
++      //    NEW_SERIAL_PROTOCOLPGM(MSG_SD_OPEN_FILE_FAIL);
++          NEW_SERIAL_PROTOCOLPGM("J21");//OPEN FAIL
++          TFT_SERIAL_ENTER();
++      //    NEW_SERIAL_PROTOCOL(subdirname);
++        //  NEW_SERIAL_PROTOCOLLNPGM(".");
++          #endif
+       return NULL;
+     }
+     curDir = &myDir;
+@@ -390,6 +411,15 @@ void CardReader::openFile(char* name, bool read, bool push_current/*=false*/) {
+       SERIAL_PROTOCOLLNPAIR(MSG_SD_SIZE, filesize);
+       SERIAL_PROTOCOLLNPGM(MSG_SD_FILE_SELECTED);
+ 
++      #ifdef TFTmodel
++    //  NEW_SERIAL_PROTOCOLPGM(MSG_SD_FILE_OPENED);
++      NEW_SERIAL_PROTOCOLPGM("J20");//OPEN SUCCESS
++      TFT_SERIAL_ENTER();
++//      NEW_SERIAL_PROTOCOL(fname);
++//      NEW_SERIAL_PROTOCOLPGM(MSG_SD_SIZE);
++//      NEW_SERIAL_PROTOCOLLN(filesize);
++//      NEW_SERIAL_PROTOCOLLNPGM(MSG_SD_FILE_SELECTED);
++      #endif
+       getfilename(0, fname);
+       lcd_setstatus(longFilename[0] ? longFilename : fname);
+       //if (longFilename[0]) {
+@@ -397,6 +427,13 @@ void CardReader::openFile(char* name, bool read, bool push_current/*=false*/) {
+       SERIAL_PROTOCOLPAIR(MSG_SD_OPEN_FILE_FAIL, fname);
+       SERIAL_PROTOCOLCHAR('.');
+       SERIAL_EOL();
++       #ifdef TFTmodel
++//      NEW_SERIAL_PROTOCOLPGM(MSG_SD_OPEN_FILE_FAIL);
++//      NEW_SERIAL_PROTOCOL(fname);
++//      NEW_SERIAL_PROTOCOLLNPGM(".");
++      NEW_SERIAL_PROTOCOLPGM("J21");//OPEN FAIL
++      TFT_SERIAL_ENTER();
++      #endif
+     }
+   }
+   else { //write
+@@ -404,6 +441,13 @@ void CardReader::openFile(char* name, bool read, bool push_current/*=false*/) {
+       SERIAL_PROTOCOLPAIR(MSG_SD_OPEN_FILE_FAIL, fname);
+       SERIAL_PROTOCOLCHAR('.');
+       SERIAL_EOL();
++       #ifdef TFTmodel
++//      NEW_SERIAL_PROTOCOLPGM(MSG_SD_OPEN_FILE_FAIL);
++//      NEW_SERIAL_PROTOCOL(fname);
++//      NEW_SERIAL_PROTOCOLLNPGM(".");
++      NEW_SERIAL_PROTOCOLPGM("J21");//OPEN FAIL
++      TFT_SERIAL_ENTER();
++      #endif
+     }
+     else {
+       saving = true;
+@@ -607,6 +651,19 @@ void CardReader::printingHasFinished() {
+     #if ENABLED(SD_REPRINT_LAST_SELECTED_FILE)
+       lcd_reselect_last_file();
+     #endif
++
++ #ifdef VENDOR_CODE
++    #if defined(OutageTest)
++    PowerTestFlag = false;
++    seekdataflag = 0;
++    WRITE(OUTAGECON_PIN, LOW);
++    FlagResumFromOutage = 0;
++    #endif
++    #if defined(TFTmodel)
++    NEW_SERIAL_PROTOCOLPGM("J14"); //PRINT DONE
++    TFT_SERIAL_ENTER();
++    #endif
++#endif //#ifdef VENDOR_CODE
+   }
+ }
+ 
+diff --git a/Marlin/cardreader.h b/Marlin/cardreader.h
+similarity index 92%
+index b0ed92b..d06ab73 100644
+--- a/Marlin/cardreader.h
++++ b/Marlin/cardreader.h
+@@ -55,6 +55,13 @@ public:
+   void printingHasFinished();
+   void printFilename();
+ 
++  #ifdef VENDOR_CODE
++  void TFTStopPringing();
++  void TFTgetStatus();
++  void Myls();
++  FORCE_INLINE long GetLastSDpos() {return sdpos;};
++  #endif
++
+   #if ENABLED(LONG_FILENAME_HOST_SUPPORT)
+     void printLongPath(char *path);
+   #endif
+@@ -69,7 +76,11 @@ public:
+     void removeJobRecoveryFile();
+   #endif
+ 
++#ifdef VENDOR_CODE
++  FORCE_INLINE void pauseSDPrint() {pauseCMDsendflag=true;TFTresumingflag=true; sdprinting = false; }
++#else //#ifndef VENDOR_CODE
+   FORCE_INLINE void pauseSDPrint() { sdprinting = false; }
++#endif //#ifdef VENDOR_CODE else
+   FORCE_INLINE bool isFileOpen() { return file.isOpen(); }
+   FORCE_INLINE bool eof() { return sdpos >= filesize; }
+   FORCE_INLINE int16_t get() { sdpos = file.curPosition(); return (int16_t)file.read(); }
+diff --git a/Marlin/configuration_store.cpp b/Marlin/configuration_store.cpp
+similarity index 98%
+index a3ae225..8e86958 100644
+--- a/Marlin/configuration_store.cpp
++++ b/Marlin/configuration_store.cpp
+@@ -128,6 +128,10 @@
+ #include "parser.h"
+ #include "vector_3.h"
+ 
++#ifdef VENDOR_CODE
++#include "cardreader.h"
++#endif //#ifdef VENDOR_CODE
++
+ #if ENABLED(MESH_BED_LEVELING)
+   #include "mesh_bed_leveling.h"
+ #endif
+@@ -194,6 +198,11 @@ void Config_Postprocess() {
+   #define EEPROM_READ_ALWAYS(VAR) read_data(eeprom_index, (uint8_t*)&VAR, sizeof(VAR), &working_crc, true)
+   #define EEPROM_ASSERT(TST,ERR) if (!(TST)) do{ SERIAL_ERROR_START(); SERIAL_ERRORLNPGM(ERR); eeprom_error = true; }while(0)
+ 
++#ifdef VENDOR_CODE
++  #define EEPROM_WRITE_VAR(pos, value) _EEPROM_writeData(pos, (uint8_t*)&value, sizeof(value))
++  #define EEPROM_READ_VAR(pos, value) _EEPROM_readData(pos, (uint8_t*)&value, sizeof(value))
++#endif //#ifdef VENDOR_CODE
++
+   #if ENABLED(DEBUG_EEPROM_READWRITE)
+     #define _FIELD_TEST(FIELD) \
+       EEPROM_ASSERT( \
+@@ -250,12 +259,14 @@ void Config_Postprocess() {
+       for (uint8_t q = mesh_num_x * mesh_num_y; q--;) EEPROM_WRITE(dummy);
+     #endif // MESH_BED_LEVELING
+ 
++#ifndef VENDOR_CODE
+     _FIELD_TEST(zprobe_zoffset);
+ 
+     #if !HAS_BED_PROBE
+       const float zprobe_zoffset = 0;
+     #endif
+     EEPROM_WRITE(zprobe_zoffset);
++#endif //#ifndef VENDOR_CODE
+ 
+     //
+     // Planar Bed Leveling matrix
+@@ -382,6 +393,12 @@ void Config_Postprocess() {
+     uint16_t stored_crc;
+     EEPROM_READ_ALWAYS(stored_crc);
+ 
++#ifdef VENDOR_CODE
++#ifdef AUTO_BED_LEVELING_BILINEAR
++    ReadAutoBedGridData();
++#endif
++#endif //#ifdef VENDOR_CODE
++
+     // Version has to match or defaults are used
+     if (strncmp(version, stored_ver, 3) != 0) {
+       if (stored_ver[3] != '\0') {
+@@ -440,7 +456,10 @@ void Config_Postprocess() {
+       #if !HAS_BED_PROBE
+         float zprobe_zoffset;
+       #endif
++
++#ifndef VENDOR_CODE
+       EEPROM_READ(zprobe_zoffset);
++#endif //#ifndef VENDOR_CODE
+ 
+       //
+       // Planar Bed Leveling matrix
+@@ -611,7 +630,11 @@ void Config_ResetDefault() {
+   #endif
+ 
+   #if HAS_BED_PROBE
++#ifdef VENDOR_CODE
++    zprobe_zoffset = NEW_zprobe_zoffset;
++#else //#ifndef VENDOR_CODE
+     zprobe_zoffset = Z_PROBE_OFFSET_FROM_EXTRUDER;
++#endif  //#ifdef VENDOR_CODE else
+   #endif
+ 
+   #if ENABLED(DELTA)
+diff --git a/Marlin/configuration_store.h b/Marlin/configuration_store.h
+similarity index 96%
+index 7279dc4..f833f2a 100644
+--- a/Marlin/configuration_store.h
++++ b/Marlin/configuration_store.h
+@@ -25,6 +25,10 @@
+ 
+ #include "MarlinConfig.h"
+ 
++#ifdef VENDOR_CODE
++  #include "VendorCode.h"
++#endif
++
+ class MarlinSettings {
+   public:
+     MarlinSettings() { }
+diff --git a/Marlin/enum.h b/Marlin/enum.h
+similarity index 96%
+index 23b1fd0..1f6ddc4 100644
+--- a/Marlin/enum.h
++++ b/Marlin/enum.h
+@@ -182,7 +182,11 @@ enum TempState {
+ /**
+  * SD Card
+  */
++#ifdef VENDOR_CODE
++enum LsAction : char { LS_SerialPrint, LS_Count, LS_GetFilename, MySerial3Print };
++#else //#ifndef VENDOR_CODE
+ enum LsAction : char { LS_SerialPrint, LS_Count, LS_GetFilename };
++#endif //#ifdef VENDOR_CODE else
+ 
+ /**
+  * Ultra LCD
+diff --git a/Marlin/Marlin/music.cpp b/Marlin/music.cpp
+new file mode 100644
+index 0000000..f9bb70b
+--- /dev/null
++++ b/Marlin/music.cpp
+@@ -0,0 +1,79 @@
++#include "music.h"
++#include "Marlin.h"
++
++int FL[]=
++{
++//NOTE_CS6,
++//NOTE_C6,
++//NOTE_DS6,
++
++NOTE_G7,
++NOTE_FS7,
++NOTE_A7,
++
++0,
++};
++int timercount[]=
++{
++10,10,10,8
++};
++
++int printdone[]={
++NOTE_F7,
++NOTE_C7,
++NOTE_D7,
++NOTE_E7,
++NOTE_D7,
++NOTE_C7,
++NOTE_B6,
++0,
++};
++
++int melody[] = {
++NOTE_F7,
++NOTE_C7,
++NOTE_D7,
++NOTE_E7,
++NOTE_D7,
++NOTE_G7,
++NOTE_A7,
++0,
++};
++
++int noteDurations[] = {
++
++  10,10,8,8,4,4,1,4,
++};
++
++void PowerOnMusic()
++{
++	for (int thisNote = 0; thisNote <8; thisNote++) {
++    int noteDuration = 1000/noteDurations[thisNote];
++    tone(Beeper_pin, melody[thisNote],noteDuration);
++    int pauseBetweenNotes = noteDuration * 2;
++	delay(pauseBetweenNotes);
++	noTone(8);
++	}
++}
++
++void PowerOFFMusic()
++{
++	for (int thisNote = 0; thisNote <8; thisNote++) {
++    int noteDuration = 1000/noteDurations[thisNote];
++    tone(Beeper_pin, printdone[thisNote],noteDuration);
++    int pauseBetweenNotes = noteDuration*2 ;
++	delay(pauseBetweenNotes);
++	noTone(8);
++	}
++}
++
++void FilamentLack()
++{
++for (int thisNote = 0; thisNote <4; thisNote++) {
++    int noteDuration = 1000/timercount[thisNote];
++    tone(Beeper_pin, FL[thisNote],noteDuration);
++    int pauseBetweenNotes = noteDuration*2 ;
++	delay(pauseBetweenNotes);
++	noTone(8);
++	}
++}
+diff --git a/Marlin/Marlin/music.h b/Marlin/music.h
+new file mode 100644
+index 0000000..8a8540a
+--- /dev/null
++++ b/Marlin/music.h
+@@ -0,0 +1,109 @@
++#ifndef MUSIC_H
++#define MUSIC_H
++
++void PowerOnMusic();
++void PowerOFFMusic();
++void FilamentLack();
++
++#define Beeper_pin 31
++
++
++/*************************************************
++ * Public Constants
++ *************************************************/
++
++#define NOTE_B0  31 //
++#define NOTE_C1  33
++#define NOTE_CS1 35
++#define NOTE_D1  37 //
++#define NOTE_DS1 39 //
++#define NOTE_E1  41 //.
++#define NOTE_F1  44 //
++#define NOTE_FS1 46 //.
++#define NOTE_G1  49
++#define NOTE_GS1 52
++#define NOTE_A1  55
++#define NOTE_AS1 58
++#define NOTE_B1  62
++#define NOTE_C2  65
++#define NOTE_CS2 69
++#define NOTE_D2  73
++#define NOTE_DS2 78
++#define NOTE_E2  82
++#define NOTE_F2  87
++#define NOTE_FS2 93
++#define NOTE_G2  98
++#define NOTE_GS2 104
++#define NOTE_A2  110
++#define NOTE_AS2 117
++#define NOTE_B2  123
++#define NOTE_C3  131
++#define NOTE_CS3 139
++#define NOTE_D3  147
++#define NOTE_DS3 156
++#define NOTE_E3  165
++#define NOTE_F3  175
++#define NOTE_FS3 185
++#define NOTE_G3  196
++#define NOTE_GS3 208
++#define NOTE_A3  220
++#define NOTE_AS3 233
++#define NOTE_B3  247
++#define NOTE_C4  262
++#define NOTE_CS4 277
++#define NOTE_D4  294
++#define NOTE_DS4 311
++#define NOTE_E4  330
++#define NOTE_F4  349
++#define NOTE_FS4 370
++#define NOTE_G4  392
++#define NOTE_GS4 415
++#define NOTE_A4  440
++#define NOTE_AS4 466
++#define NOTE_B4  494
++#define NOTE_C5  523
++#define NOTE_CS5 554
++#define NOTE_D5  587
++#define NOTE_DS5 622
++#define NOTE_E5  659
++#define NOTE_F5  698
++#define NOTE_FS5 740
++#define NOTE_G5  784
++#define NOTE_GS5 831
++#define NOTE_A5  880
++#define NOTE_AS5 932
++#define NOTE_B5  988
++#define NOTE_C6  1047
++#define NOTE_CS6 1109
++#define NOTE_D6  1175
++#define NOTE_DS6 1245
++#define NOTE_E6  1319
++#define NOTE_F6  1397
++#define NOTE_FS6 1480
++#define NOTE_G6  1568
++#define NOTE_GS6 1661
++#define NOTE_A6  1760
++#define NOTE_AS6 1865
++#define NOTE_B6  1976
++
++#define NOTE_C7  2093
++#define NOTE_CS7 2217
++#define NOTE_D7  2349
++#define NOTE_DS7 2489
++#define NOTE_E7  2637
++#define NOTE_F7  2794
++#define NOTE_FS7 2960
++#define NOTE_G7  3136
++#define NOTE_GS7 3322
++#define NOTE_A7  3520
++#define NOTE_AS7 3729
++#define NOTE_B7  3951
++
++#define NOTE_C8  4186
++#define NOTE_CS8 4435
++#define NOTE_D8  4699
++#define NOTE_DS8 4978
++
++
++
++#endif
+diff --git a/Marlin/planner.cpp b/Marlin/planner.cpp
+similarity index 99%
+index 1fcaabd..f8a47e4 100644
+--- a/Marlin/planner.cpp
++++ b/Marlin/planner.cpp
+@@ -716,6 +716,10 @@ void Planner::_buffer_line(const float &a, const float &b, const float &c, const
+           de = 0; // no difference
+           SERIAL_ECHO_START();
+           SERIAL_ECHOLNPGM(MSG_ERR_COLD_EXTRUDE_STOP);
++        #ifdef TFTmodel
++        NEW_SERIAL_PROTOCOLPGM("J13");//j13ok MSG_ERR_COLD_EXTRUDE_STOP
++        TFT_SERIAL_ENTER();
++        #endif
+         }
+       #endif // PREVENT_COLD_EXTRUSION
+       #if ENABLED(PREVENT_LENGTHY_EXTRUDE)
+diff --git a/Marlin/temperature.cpp b/Marlin/temperature.cpp
+similarity index 97%
+index 4895d1d..84c2e2c 100644
+--- a/Marlin/temperature.cpp
++++ b/Marlin/temperature.cpp
+@@ -526,6 +528,7 @@ void Temperature::min_temp_error(int8_t e) {
+   _temp_error(e, PSTR(MSG_T_MINTEMP), TEMP_ERR_PSTR(MSG_ERR_MINTEMP, e));
+ }
+ 
++#ifndef VENDOR_CODE
+ float Temperature::get_pid_output(const int8_t e) {
+   #if HOTENDS == 1
+     UNUSED(e);
+@@ -608,6 +611,7 @@ float Temperature::get_pid_output(int e) {
+ 
+   return pid_output;
+ }
++#endif // #ifndef VENDOR_CODE
+ 
+ #if ENABLED(PIDTEMPBED)
+   float Temperature::get_pid_output_bed() {
+@@ -695,8 +699,17 @@ void Temperature::manage_heater() {
+     #if WATCH_HOTENDS
+       // Make sure temperature is increasing
+       if (watch_heater_next_ms[e] && ELAPSED(ms, watch_heater_next_ms[e])) { // Time to check this extruder?
++#ifdef VENDOR_CODE
++         static unsigned char temp=0;
++         if (degHotend(e) < watch_target_temp[e]) {                           // Failed to increase enough?
++          temp++;
++          if(temp%10==0){temp=0;NEW_SERIAL_PROTOCOLPGM("J10");TFT_SERIAL_ENTER();} // SEND MESSAGE TO TFT
++           _temp_error(e, PSTR(MSG_T_HEATING_FAILED), TEMP_ERR_PSTR(MSG_HEATING_FAILED_LCD, e));
++         }
++#else //#ifdef VENDOR_CODE
+         if (degHotend(e) < watch_target_temp[e])                             // Failed to increase enough?
+           _temp_error(e, PSTR(MSG_T_HEATING_FAILED), TEMP_ERR_PSTR(MSG_HEATING_FAILED_LCD, e));
++ #endif //#ifdef VENDOR_CODE else
+         else                                                                 // Start again if the target is still far off
+           start_watching_heater(e);
+       }
+@@ -1244,8 +1258,17 @@ void Temperature::init() {
+         }
+         else if (PENDING(millis(), *timer)) break;
+         *state = TRRunaway;
++#ifdef VENDOR_CODE
++      case TRRunaway:
++
++      {
++        NEW_SERIAL_PROTOCOLPGM("J10");TFT_SERIAL_ENTER(); // SEND MESSAGE TO TFT
++        _temp_error(heater_id, PSTR(MSG_T_THERMAL_RUNAWAY), TEMP_ERR_PSTR(MSG_THERMAL_RUNAWAY, heater_id));
++      }
++#else //#ifndef VENDOR_CODE
+       case TRRunaway:
+         _temp_error(heater_id, PSTR(MSG_T_THERMAL_RUNAWAY), TEMP_ERR_PSTR(MSG_THERMAL_RUNAWAY, heater_id));
++#endif //#ifdef VENDOR_CODE else
+     }
+   }
+ 
+@@ -1899,6 +1922,9 @@ void Temperature::isr() {
+           if (++consecutive_low_temperature_error[e] >= MAX_CONSECUTIVE_LOW_TEMPERATURE_ERROR_ALLOWED)
+         #endif
+             min_temp_error(e);
++#ifdef VENDOR_CODE
++            errorFlag=2;
++#endif //#ifdef VENDOR_CODE
+       }
+       #ifdef MAX_CONSECUTIVE_LOW_TEMPERATURE_ERROR_ALLOWED
+         else
+@@ -1907,6 +1933,27 @@ void Temperature::isr() {
+   }
+ 
+   #if HAS_HEATED_BED
++#ifdef VENDOR_CODE
++      static char BedMinTempCounter=0;
++      #if HEATER_BED_RAW_LO_TEMP > HEATER_BED_RAW_HI_TEMP
++        #define GEBED <=
++      #else
++        #define GEBED >=
++      #endif
++      if (current_temperature_bed_raw GEBED bed_maxttemp_raw && target_temperature_bed > 0.0f)
++      {
++        BedMinTempCounter++;
++        if(BedMinTempCounter>20){BedMinTempCounter=0;max_temp_error(-1);errorFlag=5;}
++        else BedMinTempCounter=0;
++      }
++      if (bed_minttemp_raw GEBED current_temperature_bed_raw && target_temperature_bed > 0.0f)
++      {
++          BedMinTempCounter++;
++          if(BedMinTempCounter>20){BedMinTempCounter=0;min_temp_error(-1);errorFlag=3;}
++          else BedMinTempCounter=0;
++      }
++      else BedMinTempCounter=0;
++#else //#ifndef VENDOR_CODE
+       #if HEATER_BED_RAW_LO_TEMP > HEATER_BED_RAW_HI_TEMP
+         #define GEBED <=
+       #else
+@@ -1914,6 +1961,7 @@ void Temperature::isr() {
+     ;
+     if (current_temperature_bed_raw GEBED bed_maxttemp_raw) max_temp_error(-1);
+     if (bed_minttemp_raw GEBED current_temperature_bed_raw && bed_on) min_temp_error(-1);
++#endif  //#ifdef VENDOR_CODE else
+   #endif
+ }
+ 
+diff --git a/Marlin/thermistortables.h b/Marlin/thermistortables.h
+similarity index 99%
+index 7980b72..2a252c3 100644
+--- a/Marlin/thermistortables.h
++++ b/Marlin/thermistortables.h
+@@ -26,7 +26,11 @@
+ #include "Marlin.h"
+ #include "macros.h"
+ 
++#ifdef VENDOR_CODE
++#define OVERSAMPLENR 3
++#else //#ifndef VENDOR_CODE
+ #define OVERSAMPLENR 16
++#endif //#ifdef VENDOR_CODE else
+ #define OV(N) int16_t((N)*(OVERSAMPLENR))
+ 
+ #define ANY_THERMISTOR_IS(n) (THERMISTORHEATER_0 == n || THERMISTORHEATER_1 == n || THERMISTORHEATER_2 == n || THERMISTORHEATER_3 == n || THERMISTORHEATER_4 == n || THERMISTORBED == n || THERMISTORCHAMBER == n)
+diff --git a/Marlin/ultralcd.cpp b/Marlin/ultralcd.cpp
+similarity index 99%
+index 9d6dd3e..73790b8 100644
+--- a/Marlin/ultralcd.cpp
++++ b/Marlin/ultralcd.cpp
+@@ -374,9 +374,11 @@ uint8_t lcdDrawUpdate = LCDVIEW_CLEAR_CALL_REDRAW; // Set when the LCD needs to
+     constexpr bool processing_manual_move = false;
+   #endif
+ 
++#ifndef VENDOR_CODE
+   #if PIN_EXISTS(SD_DETECT)
+     uint8_t lcd_sd_status;
+   #endif
++#endif //#ifndef VENDOR_CODE
+ 
+   #if ENABLED(PIDTEMP)
+     float raw_Ki, raw_Kd; // place-holders for Ki and Kd edits
+@@ -828,7 +830,11 @@ void kill_screen(const char* lcd_msg) {
+     //
+     #if FAN_COUNT > 0
+       #if HAS_FAN0
++#ifdef VENDOR_CODE
++        MENU_MULTIPLIER_ITEM_EDIT(int3, MSG_FAN_SPEED FAN_SPEED_1_SUFFIX, &fanSpeeds[0], 0, Max_ModelCooling);
++#else //#ifndef VENDOR_CODE
+         MENU_MULTIPLIER_ITEM_EDIT(int3, MSG_FAN_SPEED FAN_SPEED_1_SUFFIX, &fanSpeeds[0], 0, 255);
++#endif //#ifdef VENDOR_CODE
+         #if ENABLED(EXTRA_FAN_SPEED)
+           MENU_MULTIPLIER_ITEM_EDIT(int3, MSG_EXTRA_FAN_SPEED FAN_SPEED_1_SUFFIX, &new_fanSpeeds[0], 3, 255);
+         #endif
+@@ -925,7 +931,11 @@ void kill_screen(const char* lcd_msg) {
+       #if FAN_COUNT > 1
+         fanSpeeds[active_extruder < FAN_COUNT ? active_extruder : 0] = fan;
+       #else
++#ifdef VENDOR_CODE
++       if(fan>=Max_ModelCooling){ fanSpeeds[0]=Max_ModelCooling;}else fanSpeeds[0] = fan;
++#else //#ifndef VENDOR_CODE
+         fanSpeeds[0] = fan;
++#endif//#ifdef VENDOR_CODE
+       #endif
+     #else
+       UNUSED(fan);
+@@ -2712,6 +2722,7 @@ bool lcd_blink() {
+  *
+  * No worries. This function is only called from the main thread.
+  */
++#ifndef VENDOR_CODE
+ void lcd_update() {
+ 
+   #if ENABLED(ULTIPANEL)
+@@ -2944,6 +2955,7 @@ void lcd_update() {
+ 
+   } // ELAPSED(ms, next_lcd_update_ms)
+ }
++#endif //#ifndef VENDOR_CODE
+ 
+ void lcd_finishstatus(const bool persist=false) {
+ 
