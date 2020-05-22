@@ -42,7 +42,7 @@ float NEW_zprobe_zoffset;
 
 #if ENABLED(AUTO_BED_LEVELING_BILINEAR)
 extern int bilinear_grid_spacing[2], bilinear_start[2];
-extern float bed_level_grid[ABL_GRID_POINTS_X][ABL_GRID_POINTS_Y];
+extern float bed_level_grid[GRID_MAX_POINTS_X][GRID_MAX_POINTS_Y];
 #endif
 
 extern long gcode_N, gcode_LastN, Stopped_gcode_LastN;
@@ -937,9 +937,9 @@ void get_command_from_TFT()
             {
               float value = constrain(TFTcode_value(), -1.0, 1.0);
               NEW_zprobe_zoffset += value;
-              for (uint8_t x = 0; x < ABL_GRID_POINTS_X; x++)
+              for (uint8_t x = 0; x < GRID_MAX_POINTS_X; x++)
               {
-                for (uint8_t y = 0; y < ABL_GRID_POINTS_Y; y++)
+                for (uint8_t y = 0; y < GRID_MAX_POINTS_Y; y++)
                   bed_level_grid[x][y] += value;
               }
               NEW_SERIAL_PROTOCOLPGM("A31V ");
@@ -1016,9 +1016,9 @@ void get_command_from_TFT()
             if (Manual_Leveling == 0xaa)
               break;
             if (TFTcode_seen('X'))
-              x_array = constrain(TFTcode_value(), 0, ABL_GRID_POINTS_X);
+              x_array = constrain(TFTcode_value(), 0, GRID_MAX_POINTS_X);
             if (TFTcode_seen('Y'))
-              y_array = constrain(TFTcode_value(), 0, ABL_GRID_POINTS_Y);
+              y_array = constrain(TFTcode_value(), 0, GRID_MAX_POINTS_Y);
             if (TFTcode_seen('V'))
             {
               float i = constrain(TFTcode_value() / 100, -10, 10);
@@ -1110,14 +1110,14 @@ void setupMyZoffset()
   {
     FirstBootFlag = 0xa5;
     SaveFirstBootFlag();
-    for (uint8_t x = 0; x < ABL_GRID_POINTS_X; x++)
+    for (uint8_t x = 0; x < GRID_MAX_POINTS_X; x++)
     {
-      for (uint8_t y = 0; y < ABL_GRID_POINTS_Y; y++)
+      for (uint8_t y = 0; y < GRID_MAX_POINTS_Y; y++)
         bed_level_grid[x][y] = -3.5;
     };
     //  Manual_Leveling=0xaa;
-    bilinear_grid_spacing[0] = int((RIGHT_PROBE_BED_POSITION - LEFT_PROBE_BED_POSITION) / (ABL_GRID_POINTS_X - 1));
-    bilinear_grid_spacing[1] = int((BACK_PROBE_BED_POSITION - FRONT_PROBE_BED_POSITION) / (ABL_GRID_POINTS_Y - 1));
+    bilinear_grid_spacing[0] = int((RIGHT_PROBE_BED_POSITION - LEFT_PROBE_BED_POSITION) / (GRID_MAX_POINTS_X - 1));
+    bilinear_grid_spacing[1] = int((BACK_PROBE_BED_POSITION - FRONT_PROBE_BED_POSITION) / (GRID_MAX_POINTS_Y - 1));
     bilinear_start[0] = LEFT_PROBE_BED_POSITION;
     bilinear_start[1] = FRONT_PROBE_BED_POSITION;
     zprobe_zoffset = Z_PROBE_OFFSET_FROM_EXTRUDER;
