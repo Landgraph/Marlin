@@ -59,6 +59,9 @@
 #endif
 #define  BEEPER_PIN 31
 #define SD_DETECT_PIN 49
+#define FAN_PIN            9 // (Sprinter config)
+#define FAN2_PIN          -1// 44
+#define V5_COOLING_PIN           44
 #endif //#ifdef VENDOR_CODE
 
 //
@@ -84,18 +87,18 @@
 //
 #define X_MIN_PIN           3
 #ifndef X_MAX_PIN
-  #define X_MAX_PIN         2
+  #define X_MAX_PIN         -1
 #endif
-#define Y_MIN_PIN          14
-#define Y_MAX_PIN          15
+#define Y_MIN_PIN          42
+#define Y_MAX_PIN          -1
 #define Z_MIN_PIN          18
-#define Z_MAX_PIN          19
+#define Z_MAX_PIN          43
 
 //
 // Z Probe (when not Z_MIN_PIN)
 //
 #ifndef Z_MIN_PROBE_PIN
-  #define Z_MIN_PROBE_PIN  32
+  #define Z_MIN_PROBE_PIN  2
 #endif
 
 //
@@ -249,7 +252,7 @@
 // Temperature Sensors
 //
 #define TEMP_0_PIN         13   // Analog Input
-#define TEMP_1_PIN         15   // Analog Input
+#define TEMP_1_PIN         14   // Analog Input
 #define TEMP_BED_PIN       14   // Analog Input
 
 // SPI for Max6675 or Max31855 Thermocouple
@@ -283,7 +286,7 @@
   #define MOSFET_D_PIN     -1
 #endif
 #ifndef RAMPS_D8_PIN
-  #define RAMPS_D8_PIN      8
+  #define RAMPS_D8_PIN      45
 #endif
 #ifndef RAMPS_D9_PIN
   #define RAMPS_D9_PIN      9
@@ -340,7 +343,7 @@
 #endif
 
 #ifndef PS_ON_PIN
-  #define PS_ON_PIN        12
+  #define PS_ON_PIN        -1
 #endif
 
 #if ENABLED(CASE_LIGHT_ENABLE) && !defined(CASE_LIGHT_PIN) && !defined(SPINDLE_LASER_ENABLE_PIN)
