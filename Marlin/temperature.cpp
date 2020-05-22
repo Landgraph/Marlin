@@ -600,6 +600,7 @@ void Temperature::min_temp_error(const int8_t e) {
   _temp_error(e, PSTR(MSG_T_MINTEMP), TEMP_ERR_PSTR(MSG_ERR_MINTEMP, e));
 }
 
+#ifndef VENDOR_CODE
 float Temperature::get_pid_output(const int8_t e) {
   #if HOTENDS == 1
     UNUSED(e);
@@ -693,6 +694,7 @@ float Temperature::get_pid_output(const int8_t e) {
 
   return pid_output;
 }
+#endif // #ifndef VENDOR_CODE
 
 #if ENABLED(PIDTEMPBED)
   float Temperature::get_pid_output_bed() {
@@ -787,8 +789,17 @@ void Temperature::manage_heater() {
     #if WATCH_HOTENDS
       // Make sure temperature is increasing
       if (watch_heater_next_ms[e] && ELAPSED(ms, watch_heater_next_ms[e])) { // Time to check this extruder?
+#ifdef VENDOR_CODE
+         static unsigned char temp=0;
+         if (degHotend(e) < watch_target_temp[e]) {                           // Failed to increase enough?
+          temp++;
+          if(temp%10==0){temp=0;NEW_SERIAL_PROTOCOLPGM("J10");TFT_SERIAL_ENTER();} // SEND MESSAGE TO TFT
+           _temp_error(e, PSTR(MSG_T_HEATING_FAILED), TEMP_ERR_PSTR(MSG_HEATING_FAILED_LCD, e));
+         }
+#else //#ifdef VENDOR_CODE
         if (degHotend(e) < watch_target_temp[e])                             // Failed to increase enough?
           _temp_error(e, PSTR(MSG_T_HEATING_FAILED), TEMP_ERR_PSTR(MSG_HEATING_FAILED_LCD, e));
+ #endif //#ifdef VENDOR_CODE else
         else                                                                 // Start again if the target is still far off
           start_watching_heater(e);
       }
@@ -1473,8 +1484,17 @@ void Temperature::init() {
         }
         else if (PENDING(millis(), *timer)) break;
         *state = TRRunaway;
+#ifdef VENDOR_CODE
+      case TRRunaway:
+
+      {
+        NEW_SERIAL_PROTOCOLPGM("J10");TFT_SERIAL_ENTER(); // SEND MESSAGE TO TFT
+        _temp_error(heater_id, PSTR(MSG_T_THERMAL_RUNAWAY), TEMP_ERR_PSTR(MSG_THERMAL_RUNAWAY, heater_id));
+      }
+#else //#ifndef VENDOR_CODE
       case TRRunaway:
         _temp_error(heater_id, PSTR(MSG_T_THERMAL_RUNAWAY), TEMP_ERR_PSTR(MSG_THERMAL_RUNAWAY, heater_id));
+#endif //#ifdef VENDOR_CODE else
     }
   }
 
@@ -1801,6 +1821,9 @@ void Temperature::readings_ready() {
         if (++consecutive_low_temperature_error[e] >= MAX_CONSECUTIVE_LOW_TEMPERATURE_ERROR_ALLOWED)
       #endif
           min_temp_error(e);
+#ifdef VENDOR_CODE
+            errorFlag=2;
+#endif //#ifdef VENDOR_CODE
     }
     #ifdef MAX_CONSECUTIVE_LOW_TEMPERATURE_ERROR_ALLOWED
       else
@@ -1809,6 +1832,27 @@ void Temperature::readings_ready() {
   }
 
   #if HAS_HEATED_BED
+#ifdef VENDOR_CODE
+      static char BedMinTempCounter=0;
+      #if HEATER_BED_RAW_LO_TEMP > HEATER_BED_RAW_HI_TEMP
+        #define GEBED <=
+      #else
+        #define GEBED >=
+      #endif
+      if (current_temperature_bed_raw GEBED bed_maxttemp_raw && target_temperature_bed > 0.0f)
+      {
+        BedMinTempCounter++;
+        if(BedMinTempCounter>20){BedMinTempCounter=0;max_temp_error(-1);errorFlag=5;}
+        else BedMinTempCounter=0;
+      }
+      if (bed_minttemp_raw GEBED current_temperature_bed_raw && target_temperature_bed > 0.0f)
+      {
+          BedMinTempCounter++;
+          if(BedMinTempCounter>20){BedMinTempCounter=0;min_temp_error(-1);errorFlag=3;}
+          else BedMinTempCounter=0;
+      }
+      else BedMinTempCounter=0;
+#else //#ifndef VENDOR_CODE
     #if HEATER_BED_RAW_LO_TEMP > HEATER_BED_RAW_HI_TEMP
       #define GEBED <=
     #else
@@ -1821,6 +1865,7 @@ void Temperature::readings_ready() {
     ;
     if (current_temperature_bed_raw GEBED bed_maxttemp_raw) max_temp_error(-1);
     if (bed_minttemp_raw GEBED current_temperature_bed_raw && bed_on) min_temp_error(-1);
+#endif  //#ifdef VENDOR_CODE else
   #endif
 }
 

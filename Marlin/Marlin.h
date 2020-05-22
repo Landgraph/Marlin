@@ -44,6 +44,10 @@
 #include "utility.h"
 #include "serial.h"
 
+#ifdef VENDOR_CODE
+  #include "VendorCode.h"
+#endif
+
 void idle(
   #if ENABLED(ADVANCED_PAUSE_FEATURE)
     bool no_stepper_sleep = false  // pass true to keep steppers from disabling on timeout

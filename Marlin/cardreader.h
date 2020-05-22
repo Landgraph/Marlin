@@ -59,6 +59,13 @@ public:
   void printingHasFinished();
   void printFilename();
 
+  #ifdef VENDOR_CODE
+  void TFTStopPringing();
+  void TFTgetStatus();
+  void Myls();
+  FORCE_INLINE long GetLastSDpos() {return sdpos;};
+  #endif
+
   #if ENABLED(LONG_FILENAME_HOST_SUPPORT)
     void printLongPath(char *path);
   #endif
@@ -96,7 +103,11 @@ public:
     void removeJobRecoveryFile();
   #endif
 
+#ifdef VENDOR_CODE
+  FORCE_INLINE void pauseSDPrint() {pauseCMDsendflag=true;TFTresumingflag=true; sdprinting = false; }
+#else //#ifndef VENDOR_CODE
   FORCE_INLINE void pauseSDPrint() { sdprinting = false; }
+#endif //#ifdef VENDOR_CODE else
   FORCE_INLINE bool isFileOpen() { return file.isOpen(); }
   FORCE_INLINE bool eof() { return sdpos >= filesize; }
   FORCE_INLINE int16_t get() { sdpos = file.curPosition(); return (int16_t)file.read(); }

@@ -140,7 +140,11 @@ enum DebugFlags : unsigned char {
 /**
  * SD Card
  */
+#ifdef VENDOR_CODE
+enum LsAction : char { LS_SerialPrint, LS_Count, LS_GetFilename, MySerial3Print };
+#else //#ifndef VENDOR_CODE
 enum LsAction : char { LS_SerialPrint, LS_Count, LS_GetFilename };
+#endif //#ifdef VENDOR_CODE else
 
 /**
  * Ultra LCD

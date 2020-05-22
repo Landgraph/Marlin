@@ -55,6 +55,10 @@
 #include "parser.h"
 #include "vector_3.h"
 
+#ifdef VENDOR_CODE
+#include "cardreader.h"
+#endif //#ifdef VENDOR_CODE
+
 #if ENABLED(MESH_BED_LEVELING)
   #include "mesh_bed_leveling.h"
 #endif
@@ -370,6 +374,11 @@ void MarlinSettings::postprocess() {
   #define EEPROM_READ_ALWAYS(VAR) read_data(eeprom_index, (uint8_t*)&VAR, sizeof(VAR), &working_crc, true)
   #define EEPROM_ASSERT(TST,ERR) if (!(TST)) do{ SERIAL_ERROR_START(); SERIAL_ERRORLNPGM(ERR); eeprom_error = true; }while(0)
 
+#ifdef VENDOR_CODE
+  #define EEPROM_WRITE_VAR(pos, value) _EEPROM_writeData(pos, (uint8_t*)&value, sizeof(value))
+  #define EEPROM_READ_VAR(pos, value) _EEPROM_readData(pos, (uint8_t*)&value, sizeof(value))
+#endif //#ifdef VENDOR_CODE
+
   #if ENABLED(DEBUG_EEPROM_READWRITE)
     #define _FIELD_TEST(FIELD) \
       EEPROM_ASSERT( \
@@ -523,12 +532,14 @@ void MarlinSettings::postprocess() {
       for (uint8_t q = mesh_num_x * mesh_num_y; q--;) EEPROM_WRITE(dummy);
     #endif // MESH_BED_LEVELING
 
+#ifndef VENDOR_CODE
     _FIELD_TEST(zprobe_zoffset);
 
     #if !HAS_BED_PROBE
       const float zprobe_zoffset = 0;
     #endif
     EEPROM_WRITE(zprobe_zoffset);
+#endif //#ifndef VENDOR_CODE
 
     //
     // Planar Bed Leveling matrix
@@ -1037,6 +1048,12 @@ void MarlinSettings::postprocess() {
     uint16_t stored_crc;
     EEPROM_READ_ALWAYS(stored_crc);
 
+#ifdef VENDOR_CODE
+#ifdef AUTO_BED_LEVELING_BILINEAR
+    ReadAutoBedGridData();
+#endif
+#endif //#ifdef VENDOR_CODE
+
     // Version has to match or defaults are used
     if (strncmp(version, stored_ver, 3) != 0) {
       if (stored_ver[3] != '\0') {
@@ -1162,7 +1179,10 @@ void MarlinSettings::postprocess() {
       #if !HAS_BED_PROBE
         float zprobe_zoffset;
       #endif
+
+#ifndef VENDOR_CODE
       EEPROM_READ(zprobe_zoffset);
+#endif //#ifndef VENDOR_CODE
 
       //
       // Planar Bed Leveling matrix
@@ -1869,7 +1889,11 @@ void MarlinSettings::reset() {
   #endif
 
   #if HAS_BED_PROBE
+#ifdef VENDOR_CODE
+    zprobe_zoffset = NEW_zprobe_zoffset;
+#else //#ifndef VENDOR_CODE
     zprobe_zoffset = Z_PROBE_OFFSET_FROM_EXTRUDER;
+#endif  //#ifdef VENDOR_CODE else
   #endif
 
   #if ENABLED(DELTA)

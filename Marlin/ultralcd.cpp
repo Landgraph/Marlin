@@ -472,9 +472,11 @@ uint16_t max_display_update_time = 0;
     constexpr bool processing_manual_move = false;
   #endif
 
+#ifndef VENDOR_CODE
   #if PIN_EXISTS(SD_DETECT)
     uint8_t lcd_sd_status;
   #endif
+#endif //#ifndef VENDOR_CODE
 
   #if ENABLED(PIDTEMP)
     float raw_Ki, raw_Kd; // place-holders for Ki and Kd edits
@@ -1473,7 +1475,11 @@ void lcd_quick_feedback(const bool clear_buttons) {
     //
     #if FAN_COUNT > 0
       #if HAS_FAN0
+#ifdef VENDOR_CODE
+        MENU_MULTIPLIER_ITEM_EDIT(int3, MSG_FAN_SPEED FAN_SPEED_1_SUFFIX, &fanSpeeds[0], 0, Max_ModelCooling);
+#else //#ifndef VENDOR_CODE
         MENU_MULTIPLIER_ITEM_EDIT(int3, MSG_FAN_SPEED FAN_SPEED_1_SUFFIX, &fanSpeeds[0], 0, 255);
+#endif //#ifdef VENDOR_CODE
         #if ENABLED(EXTRA_FAN_SPEED)
           MENU_MULTIPLIER_ITEM_EDIT(int3, MSG_EXTRA_FAN_SPEED FAN_SPEED_1_SUFFIX, &new_fanSpeeds[0], 3, 255);
         #endif
@@ -1611,7 +1617,11 @@ void lcd_quick_feedback(const bool clear_buttons) {
       #if FAN_COUNT > 1
         fanSpeeds[active_extruder < FAN_COUNT ? active_extruder : 0] = fan;
       #else
+#ifdef VENDOR_CODE
+       if(fan>=Max_ModelCooling){ fanSpeeds[0]=Max_ModelCooling;}else fanSpeeds[0] = fan;
+#else //#ifndef VENDOR_CODE
         fanSpeeds[0] = fan;
+#endif//#ifdef VENDOR_CODE
       #endif
     #else
       UNUSED(fan);
@@ -5149,6 +5159,7 @@ bool lcd_blink() {
  *
  * No worries. This function is only called from the main thread.
  */
+#ifndef VENDOR_CODE
 void lcd_update() {
 
   #if ENABLED(ULTIPANEL)
@@ -5427,6 +5438,7 @@ void lcd_update() {
 
   } // ELAPSED(ms, next_lcd_update_ms)
 }
+#endif //#ifndef VENDOR_CODE
 
 void lcd_finishstatus(const bool persist=false) {
 

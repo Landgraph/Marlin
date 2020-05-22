@@ -25,6 +25,10 @@
 
 #include "MarlinConfig.h"
 
+#ifdef VENDOR_CODE
+  #include "VendorCode.h"
+#endif
+
 class MarlinSettings {
   public:
     MarlinSettings() { }

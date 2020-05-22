@@ -32,9 +32,10 @@
 #include "Configuration_adv.h"
 
 #if USE_MARLINSERIAL
-  #define HardwareSerial_h // trick to disable the standard HWserial
+  //#define HardwareSerial_h // trick to disable the standard HWserial
 #endif
 
+#include "MyHardwareSerial.h"
 #include "types.h"
 #include "HAL.h"
 #include "pins.h"

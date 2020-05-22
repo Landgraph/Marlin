@@ -81,6 +81,7 @@ char *createFilename(char *buffer, const dir_t &p) { //buffer > 12characters
 
 uint16_t nrFile_index;
 
+#ifndef VENDOR_CODE
 void CardReader::lsDive(const char *prepend, SdFile parent, const char * const match/*=NULL*/) {
   dir_t p;
   uint8_t cnt = 0;
@@ -160,6 +161,7 @@ void CardReader::lsDive(const char *prepend, SdFile parent, const char * const m
     }
   } // while readDir
 }
+#endif // #ifndef VENDOR_CODE
 
 void CardReader::ls() {
   lsAction = LS_SerialPrint;
@@ -298,6 +300,7 @@ void CardReader::openAndPrintFile(const char *name) {
   enqueue_and_echo_commands_P(PSTR("M24"));
 }
 
+#ifndef VENDOR_CODE
 void CardReader::startFileprint() {
   if (cardOK) {
     sdprinting = true;
@@ -306,6 +309,7 @@ void CardReader::startFileprint() {
     #endif
   }
 }
+#endif // #ifndef VENDOR_CODE
 
 void CardReader::stopSDPrint(
   #if SD_RESORT
@@ -362,6 +366,11 @@ void CardReader::openFile(char * const path, const bool read, const bool subcall
         return;
       }
 
+     #ifdef TFTmodel
+//     NEW_SERIAL_ECHOPGM("SUBROUTINE CALL target:\"");
+     NEW_SERIAL_ECHO(name);
+//     NEW_SERIAL_ECHOPGM("\" parent:\"");
+     #endif
       // Store current filename (based on workDirParents) and position
       getAbsFilename(proc_filenames[file_subcall_ctr]);
       filespos[file_subcall_ctr] = sdpos;
@@ -382,6 +391,10 @@ void CardReader::openFile(char * const path, const bool read, const bool subcall
   else {                  // Opening fresh file
     doing = 2;
     file_subcall_ctr = 0; // Reset procedure depth in case user cancels print while in procedure
+     #ifdef TFTmodel
+//    NEW_SERIAL_ECHOPGM("Now fresh file: ");
+    NEW_SERIAL_ECHOLN(name);
+    #endif
   }
 
   if (doing) {
@@ -405,6 +418,15 @@ void CardReader::openFile(char * const path, const bool read, const bool subcall
       SERIAL_PROTOCOLLNPAIR(MSG_SD_SIZE, filesize);
       SERIAL_PROTOCOLLNPGM(MSG_SD_FILE_SELECTED);
 
+      #ifdef TFTmodel
+    //  NEW_SERIAL_PROTOCOLPGM(MSG_SD_FILE_OPENED);
+      NEW_SERIAL_PROTOCOLPGM("J20");//OPEN SUCCESS
+      TFT_SERIAL_ENTER();
+//      NEW_SERIAL_PROTOCOL(fname);
+//      NEW_SERIAL_PROTOCOLPGM(MSG_SD_SIZE);
+//      NEW_SERIAL_PROTOCOLLN(filesize);
+//      NEW_SERIAL_PROTOCOLLNPGM(MSG_SD_FILE_SELECTED);
+      #endif
       getfilename(0, fname);
       lcd_setstatus(longFilename[0] ? longFilename : fname);
       //if (longFilename[0]) {
@@ -415,6 +437,13 @@ void CardReader::openFile(char * const path, const bool read, const bool subcall
       SERIAL_PROTOCOLPAIR(MSG_SD_OPEN_FILE_FAIL, fname);
       SERIAL_PROTOCOLCHAR('.');
       SERIAL_EOL();
+       #ifdef TFTmodel
+//      NEW_SERIAL_PROTOCOLPGM(MSG_SD_OPEN_FILE_FAIL);
+//      NEW_SERIAL_PROTOCOL(fname);
+//      NEW_SERIAL_PROTOCOLLNPGM(".");
+      NEW_SERIAL_PROTOCOLPGM("J21");//OPEN FAIL
+      TFT_SERIAL_ENTER();
+      #endif
     }
   }
   else { //write
@@ -422,6 +451,13 @@ void CardReader::openFile(char * const path, const bool read, const bool subcall
       SERIAL_PROTOCOLPAIR(MSG_SD_OPEN_FILE_FAIL, fname);
       SERIAL_PROTOCOLCHAR('.');
       SERIAL_EOL();
+       #ifdef TFTmodel
+//      NEW_SERIAL_PROTOCOLPGM(MSG_SD_OPEN_FILE_FAIL);
+//      NEW_SERIAL_PROTOCOL(fname);
+//      NEW_SERIAL_PROTOCOLLNPGM(".");
+      NEW_SERIAL_PROTOCOLPGM("J21");//OPEN FAIL
+      TFT_SERIAL_ENTER();
+      #endif
     }
     else {
       saving = true;
@@ -595,6 +631,13 @@ const char* CardReader::diveToFile(SdFile*& curDir, const char * const path, con
       SERIAL_PROTOCOLPAIR(MSG_SD_OPEN_FILE_FAIL, dosSubdirname);
       SERIAL_PROTOCOLCHAR('.');
       SERIAL_EOL();
+           #ifdef TFTmodel
+      //    NEW_SERIAL_PROTOCOLPGM(MSG_SD_OPEN_FILE_FAIL);
+          NEW_SERIAL_PROTOCOLPGM("J21");//OPEN FAIL
+          TFT_SERIAL_ENTER();
+      //    NEW_SERIAL_PROTOCOL(subdirname);
+        //  NEW_SERIAL_PROTOCOLLNPGM(".");
+          #endif
       return NULL;
     }
     curDir = &myDir;
@@ -917,6 +960,19 @@ void CardReader::printingHasFinished() {
     #if ENABLED(SD_REPRINT_LAST_SELECTED_FILE)
       lcd_reselect_last_file();
     #endif
+
+ #ifdef VENDOR_CODE
+    #if defined(OutageTest)
+    PowerTestFlag = false;
+    seekdataflag = 0;
+    WRITE(OUTAGECON_PIN, LOW);
+    FlagResumFromOutage = 0;
+    #endif
+    #if defined(TFTmodel)
+    NEW_SERIAL_PROTOCOLPGM("J14"); //PRINT DONE
+    TFT_SERIAL_ENTER();
+    #endif
+#endif //#ifdef VENDOR_CODE
   }
 }
 

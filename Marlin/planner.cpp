@@ -1673,6 +1673,10 @@ bool Planner::_populate_block(block_t * const block, bool split_move,
           de = 0; // no difference
           SERIAL_ECHO_START();
           SERIAL_ECHOLNPGM(MSG_ERR_COLD_EXTRUDE_STOP);
+        #ifdef TFTmodel
+        NEW_SERIAL_PROTOCOLPGM("J13");//j13ok MSG_ERR_COLD_EXTRUDE_STOP
+        TFT_SERIAL_ENTER();
+        #endif
         }
       #endif // PREVENT_COLD_EXTRUSION
       #if ENABLED(PREVENT_LENGTHY_EXTRUDE)
