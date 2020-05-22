@@ -264,7 +264,7 @@ void setuplevelTest()
 
 void Newok_to_send()
 {
-  previous_cmd_ms = millis();
+  previous_move_ms = millis();
   /*
   if (!send_ok[cmd_queue_index_r]) return;
  // SERIAL_PROTOCOLPGM(MSG_OK);
