@@ -15897,7 +15897,7 @@ void loop() {
   //  if((AssistLeveTestflag==1)&&(commands_in_queue < BUFSIZE)){ AssistLevelTest();}
   if (TFTpausingFlag) //when pause sd printing,send "ok"to tft as read buffer carry out
   {
-    stepper.synchronize();
+    planner.synchronize();
     TFTpausingFlag = false;
     NEW_SERIAL_PROTOCOLPGM("J18"); // pausing done
     TFT_SERIAL_ENTER();

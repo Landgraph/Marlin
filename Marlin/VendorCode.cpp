@@ -321,7 +321,7 @@ void z_offset_auto_test()
   {
     i = i + 0.025;
     planner.buffer_line(current_position[X_AXIS], current_position[Y_AXIS], i, 0, 6, 2);
-    stepper.synchronize();
+    planner.synchronize();
     delay(30);
   }
   Current_z_offset = i;
@@ -853,7 +853,7 @@ void get_command_from_TFT()
             {
               char value[30];
               planner.buffer_line(current_position[X_AXIS], current_position[Y_AXIS], 20, current_position[E_AXIS], 10, active_extruder);
-              stepper.synchronize();
+              planner.synchronize();
               NEW_SERIAL_PROTOCOLPGM("A27V ");
               NEW_SERIAL_PROTOCOLPGM("R ");
               NEW_SERIAL_PROTOCOL(RiseAngles);
@@ -1201,7 +1201,7 @@ else if(stepFlag>72)
   current_position[Y_AXIS]=20;
   current_position[Z_AXIS]=10;
   planner.set_e_position_mm(0);
-//  stepper.synchronize();
+//  planner.synchronize();
   thermalManager.setTargetHotend(0,0); //EXTRADER 0 COOL DOWN
   stepFlag=0;
   HomeFlag=0;
@@ -1419,7 +1419,7 @@ void ReadAutoBedGridData()
 #endif //AUTO_BED_LEVELING_BILINEAR
 #endif //ENABLED(EEPROM_SETTINGS)
 
-float Temperature::get_pid_output(int e)
+float Temperature::get_pid_output(const int8_t e)
 {
 
 //Define has been copied from temperature.cpp
