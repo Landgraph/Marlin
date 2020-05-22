@@ -52,6 +52,15 @@
   #define BOARD_NAME "RAMPS 1.4"
 #endif
 
+#ifdef VENDOR_CODE
+#ifdef OutageTest
+  #define OUTAGETEST_PIN       79
+  #define OUTAGECON_PIN        58
+#endif
+#define  BEEPER_PIN 31
+#define SD_DETECT_PIN 49
+#endif //#ifdef VENDOR_CODE
+
 //
 // Servos
 //

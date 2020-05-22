@@ -242,10 +242,10 @@ void PowerKill()
     //  #ifdef OutageTest
     //  OutageSave();
     //  #endif
-    disable_x();
-    disable_y();
-    disable_z();
-    disable_e0();
+    disable_X();
+    disable_Y();
+    disable_Z();
+    disable_e_steppers();
     OutageSave();
     PowerTestFlag = false;
   }
@@ -669,10 +669,10 @@ void get_command_from_TFT()
             //  if((!planner.movesplanned())&&(!TFTresumingflag))
             {
               quickstop_stepper();
-              disable_x();
-              disable_y();
-              disable_z();
-              disable_e0();
+              disable_X();
+              disable_Y();
+              disable_Z();
+              disable_e_steppers();
             }
             TFT_SERIAL_ENTER();
             break;
@@ -1741,10 +1741,10 @@ void CardReader::TFTStopPringing()
   NEW_SERIAL_PROTOCOLPGM("J16"); //STOP
   TFT_SERIAL_ENTER();
   //  autotempShutdown();
-  disable_x();
-  disable_y();
-  disable_z();
-  disable_e0();
+  disable_X();
+  disable_Y();
+  disable_Z();
+  disable_e_steppers();
 }
 
 void CardReader::TFTgetStatus()

@@ -689,7 +689,7 @@
  *
  * Enable this option for a probe connected to the Z Min endstop pin.
  */
-#define Z_MIN_PROBE_USES_Z_MIN_ENDSTOP_PIN
+//#define Z_MIN_PROBE_USES_Z_MIN_ENDSTOP_PIN
 
 /**
  * Z_MIN_PROBE_ENDSTOP
@@ -1036,10 +1036,10 @@
   #define GRID_MAX_POINTS_Y GRID_MAX_POINTS_X
 
   // Set the boundaries for probing (where the probe can reach).
-  #define LEFT_PROBE_BED_POSITION 8
-  #define RIGHT_PROBE_BED_POSITION LEFT_PROBE_BED_POSITION+378
+  #define LEFT_PROBE_BED_POSITION 10
+  #define RIGHT_PROBE_BED_POSITION LEFT_PROBE_BED_POSITION+376
   #define FRONT_PROBE_BED_POSITION 17
-  #define BACK_PROBE_BED_POSITION FRONT_PROBE_BED_POSITION+378
+  #define BACK_PROBE_BED_POSITION FRONT_PROBE_BED_POSITION+376
 
   // Probe along the Y axis, advancing X after each column
   //#define PROBE_Y_FIRST

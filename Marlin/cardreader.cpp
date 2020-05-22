@@ -368,7 +368,7 @@ void CardReader::openFile(char * const path, const bool read, const bool subcall
 
      #ifdef TFTmodel
 //     NEW_SERIAL_ECHOPGM("SUBROUTINE CALL target:\"");
-     NEW_SERIAL_ECHO(name);
+     NEW_SERIAL_ECHO(path);
 //     NEW_SERIAL_ECHOPGM("\" parent:\"");
      #endif
       // Store current filename (based on workDirParents) and position
@@ -393,7 +393,7 @@ void CardReader::openFile(char * const path, const bool read, const bool subcall
     file_subcall_ctr = 0; // Reset procedure depth in case user cancels print while in procedure
      #ifdef TFTmodel
 //    NEW_SERIAL_ECHOPGM("Now fresh file: ");
-    NEW_SERIAL_ECHOLN(name);
+    NEW_SERIAL_ECHOLN(path);
     #endif
   }
 

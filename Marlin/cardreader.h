@@ -25,6 +25,10 @@
 
 #include "MarlinConfig.h"
 
+#ifdef VENDOR_CODE
+#include "VendorCode.h"
+#endif //#ifdef VENDOR_CODE
+
 #if ENABLED(SDSUPPORT)
 
 #define SD_RESORT ENABLED(SDCARD_SORT_ALPHA) && ENABLED(SDSORT_DYNAMIC_RAM)

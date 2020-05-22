@@ -2487,7 +2487,7 @@ void clean_up_after_endstop_or_probe_move() {
       // Wait for bed to heat back up between probing points
       if (thermalManager.isHeatingBed()) {
         serialprintPGM(msg_wait_for_bed_heating);
-        LCD_MESSAGEPGM(MSG_BED_HEATING);
+        //LCD_MESSAGEPGM(MSG_BED_HEATING); //incompatible with latest Marlin
         while (thermalManager.isHeatingBed()) safe_delay(200);
         lcd_reset_status();
       }
@@ -4724,11 +4724,11 @@ inline void gcode_G28(const bool always_home_all) {
 
 #ifdef VENDOR_CODE
   //  if(AssistLeveTestflag) HomeFlag=1;
-  if ((Manual_Leveling == 0xaa) && (!card.sdprinting) && (homeZ || home_all_axis))
+  if ((Manual_Leveling == 0xaa) && (!card.sdprinting) && (homeZ || home_all))
   {
     do_blocking_move_to(current_position[X_AXIS], current_position[Y_AXIS], 0.001, 2);
-    disable_x();
-    //   disable_y();
+    disable_X();
+    //   disable_Y();
     Y_ENABLE_WRITE(!Y_ENABLE_ON);
     current_position[Z_AXIS] = 0.001;
     PointTestFlag = true;
@@ -5699,9 +5699,9 @@ void home_all_axes() { gcode_G28(true); }
       SaveAutoBedGridData();
       NEW_SERIAL_PROTOCOLPGM("J25");//  auto leveling DONE
       TFT_SERIAL_ENTER();
-      disable_x();
-      disable_y();
-      disable_z();
+      disable_X();
+      disable_Y();
+      disable_Z();
 #endif //#ifdef VENDOR_CODE
 
         refresh_bed_level();
@@ -9028,7 +9028,7 @@ inline void gcode_M109() {
       NEW_SERIAL_PROTOCOLPGM("J09"); //hotbed heating
       TFT_SERIAL_ENTER();
       #endif
-      LCD_MESSAGEPGM(MSG_BED_DONE);
+      //LCD_MESSAGEPGM(MSG_BED_DONE); //incompatible with latest Marlin
     }
 #else  //#ifndef VENDOR_CODE
     if (wait_for_heatup) lcd_reset_status();
